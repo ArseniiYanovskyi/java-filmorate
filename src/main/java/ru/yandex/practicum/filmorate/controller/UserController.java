@@ -2,8 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ import java.util.List;
 public class UserController {
     private static final HashMap<String, User> usersData = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger("UserController");
-    private static int userIdCounter = 1;
+    private static int userIdCounter = 0;
 
     @GetMapping("/users")
     public List<User> getUsersList(){
@@ -28,12 +29,7 @@ public class UserController {
     public User postUser(@RequestBody User user){
         try{
             if(isUserValid(user)) {
-                if (user.getId() > userIdCounter){
-                    userIdCounter = user.getId() + 1;
-                }
-                if (user.getId() == 0){
-                    user.setId(userIdCounter++);
-                }
+                user.setId(++userIdCounter);
                 usersData.put(user.getEmail(), user);
                 log.debug("User ID {} Name {} Email {} added successfully.",
                         user.getId(), user.getName(), user.getEmail());
@@ -41,6 +37,7 @@ public class UserController {
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
+            throw new IncorrectRequestException(e.getMessage());
         }
         return user;
     }
@@ -49,14 +46,11 @@ public class UserController {
     @PutMapping("/users")
     @ExceptionHandler
     public User putUser(@RequestBody User user){
+        if (user.getEmail() != null && !usersData.containsKey(user.getEmail())){
+            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this email do not present in database.");
+        }
         try{
             if(isUserValid(user)) {
-                if (user.getId() > userIdCounter){
-                    userIdCounter = user.getId() + 1;
-                }
-                if (user.getId() == 0){
-                    user.setId(userIdCounter++);
-                }
                 usersData.put(user.getEmail(), user);
                 log.debug("User ID {} Name {} Email {} added or edited successfully.",
                         user.getId(), user.getName(), user.getEmail());
@@ -64,6 +58,7 @@ public class UserController {
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
+            throw new IncorrectRequestException(e.getMessage());
         }
         return user;
     }

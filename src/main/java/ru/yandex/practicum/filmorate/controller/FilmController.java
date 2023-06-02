@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -24,7 +26,7 @@ public class FilmController {
     }
 
     @PostMapping("/films")
-    public Film postFilm(@Valid @RequestBody Film film){
+    public Film postFilm(@RequestBody Film film){
         try{
             if(isFilmValid(film)) {
                 filmsData.put(film.getId(), film);
@@ -33,12 +35,16 @@ public class FilmController {
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
+            throw new IncorrectRequestException(e.getMessage());
         }
         return film;
     }
 
     @PutMapping("/films")
     public Film putFilm(@RequestBody Film film){
+        if (!filmsData.containsKey(film.getId())){
+            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this email do not present in database.");
+        }
         try{
             if(isFilmValid(film)) {
                 filmsData.put(film.getId(), film);
@@ -47,6 +53,7 @@ public class FilmController {
             }
         } catch (ValidationException e){
             System.out.println(e.getMessage());
+            throw new IncorrectRequestException(e.getMessage());
         }
         return film;
     }
