@@ -93,14 +93,14 @@ public class UserController {
         LocalDateTime birthDate = LocalDateTime.of(birthYear, birthMonth, birthDay, 0, 0, 0);
         LocalDateTime now = LocalDateTime.now();
 
-        if (birthDate.isAfter(now)){
+        if (birthDate.isAfter(now)) {
             return false;
         }
         return true;
     }
 
 
-    private boolean isEmailValid(String email){
+    private boolean isEmailValid(String email) {
         if (!email.contains("@")) {
             return false;
         }
