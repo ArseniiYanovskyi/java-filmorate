@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,65 +16,68 @@ import java.util.List;
 
 @RestController
 public class FilmController {
-    private static final HashMap<Integer, Film> filmsData = new HashMap<>();
+    private static final InMemoryFilmRepository filmRepository = new InMemoryFilmRepository();
 
     private static final Logger log = LoggerFactory.getLogger("FilmController");
 
     @GetMapping("/films")
     public List<Film> getFilmsList(){
         log.debug("Received request for films list.");
-        return new ArrayList<>(filmsData.values());
+        return filmRepository.getAllFilms();
     }
 
     @PostMapping("/films")
     public Film postFilm(@RequestBody Film film){
-        try{
-            if(isFilmValid(film)) {
-                filmsData.put(film.getId(), film);
-                log.debug("Film ID {} Name {} added successfully.", film.getId(), film.getName());
-                return filmsData.get(film.getId());
-            }
-        } catch (ValidationException e){
-            System.out.println(e.getMessage());
-            throw new IncorrectRequestException(e.getMessage());
+        if(!isFilmValid(film)) {
+            throw new ValidationException("Validation for adding film has failed.");
         }
-        return film;
+
+        if (filmRepository.isFilmPresent(film)){
+            log.debug("Failed to add film, already exist");
+            throw new IncorrectRequestException("Film with this information already added to repository.");
+        }
+
+        filmRepository.addFilm(film);
+        log.debug("Film ID {} Name {} added successfully.", film.getId(), film.getName());
+        return filmRepository.getFilmById(film.getId());
     }
 
     @PutMapping("/films")
     public Film putFilm(@RequestBody Film film){
-        if (!filmsData.containsKey(film.getId())){
-            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this email do not present in database.");
+        if(!isFilmValid(film)) {
+            throw new ValidationException("Validation for editing film has failed.");
         }
-        try{
-            if(isFilmValid(film)) {
-                filmsData.put(film.getId(), film);
-                log.debug("Film ID {} Name {} added or edited successfully.", film.getId(), film.getName());
-                return filmsData.get(film.getId());
-            }
-        } catch (ValidationException e){
-            System.out.println(e.getMessage());
-            throw new IncorrectRequestException(e.getMessage());
+
+        if (!filmRepository.isFilmPresent(film)){
+            log.debug("Editing film has failed, film has not been found.");
+            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this email does not present in database.");
         }
-        return film;
+
+        filmRepository.editExistingFilm(film);
+        log.debug("Film ID {} Name {} edited successfully.", film.getId(), film.getName());
+        return filmRepository.getFilmById(film.getId());
     }
 
     private boolean isFilmValid(Film film){
+        if (film.getId() == 0){
+            log.debug("Setting new id for film.");
+            film.setId(filmRepository.getAllFilms().size() + 1);
+        }
         if (film.getName() == null || film.getName().isBlank()) {
             log.debug("Validation for film has failed. Incorrect film name, might be: lesser 1 char.");
-            throw new ValidationException("Incorrect film name, might be: lesser 1 char.");
+            return false;
         }
         if (film.getDescription() == null || film.getDescription().length() > 200) {
             log.debug("Validation for film has failed. Incorrect film description, might be: too long.");
-            throw new ValidationException("Incorrect film description, might be: too long.");
+            return false;
         }
         if (film.getReleaseDate() == null || !isFilmReleaseDateValid(film.getReleaseDate())) {
             log.debug("Validation for film has failed. Incorrect film release date, might be: was before 28th of December 1985.");
-            throw new ValidationException("Incorrect film release date, might be: was before 28th of December 1985.");
+            return false;
         }
         if (film.getDuration() == 0 || film.getDuration() < 0) {
             log.debug("Validation for film has failed. Incorrect film duration, might be: lesser than 1 point.");
-            throw new ValidationException("Incorrect film duration, might be: lesser than 1 point.");
+            return false;
         }
         log.debug("Validation for new film was successfully finished.");
         return true;
@@ -84,7 +88,7 @@ public class FilmController {
         int year = Integer.parseInt(splitDateLine[0]);
         int month = Integer.parseInt(splitDateLine[1]);
         int day = Integer.parseInt(splitDateLine[2]);
-        if(year < 1985 || (year == 1985 && month < 12) || (year == 1985 && month == 12 && day < 28)){
+        if(year < 1895 || (year == 1985 && month < 12) || (year == 1985 && month == 12 && day < 28)){
             return false;
         }
         return true;
