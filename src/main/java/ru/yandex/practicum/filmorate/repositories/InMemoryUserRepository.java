@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class InMemoryUserRepository {
-    private HashMap <Integer, User> usersData = new HashMap<>();
+    private HashMap<Integer, User> usersData = new HashMap<>();
 
     public void addUser(User user) {
         usersData.put(user.getId(), user);
