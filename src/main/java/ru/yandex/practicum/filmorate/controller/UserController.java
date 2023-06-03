@@ -25,10 +25,10 @@ public class UserController {
     @PostMapping("/users")
     @ExceptionHandler
     public User postUser(@RequestBody User user) {
-        if(!isUserValid(user)) {
+        if (!isUserValid(user)) {
             throw new ValidationException("Validation for adding user has failed.");
         }
-        if(usersRepository.isUserPresent(user)) {
+        if (usersRepository.isUserPresent(user)) {
             log.debug("Failed to add new user, user with this Email already exist.");
             throw new ValidationException("Failed to add new user.");
         }
@@ -42,7 +42,7 @@ public class UserController {
     @PutMapping("/users")
     @ExceptionHandler
     public User putUser(@RequestBody User user) {
-        if(!isUserValid(user)) {
+        if (!isUserValid(user)) {
             throw new ValidationException("Validation for updating user has failed.");
         }
 
@@ -93,7 +93,7 @@ public class UserController {
         LocalDateTime birthDate = LocalDateTime.of(birthYear, birthMonth, birthDay, 0, 0, 0);
         LocalDateTime now = LocalDateTime.now();
 
-        if(birthDate.isAfter(now)){
+        if (birthDate.isAfter(now)){
             return false;
         }
         return true;
@@ -101,7 +101,7 @@ public class UserController {
 
 
     private boolean isEmailValid(String email){
-        if (!email.contains("@")){
+        if (!email.contains("@")) {
             return false;
         }
         return true;

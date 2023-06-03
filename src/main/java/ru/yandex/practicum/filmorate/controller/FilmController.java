@@ -25,7 +25,7 @@ public class FilmController {
 
     @PostMapping("/films")
     public Film postFilm(@RequestBody Film film) {
-        if(!isFilmValid(film)) {
+        if (!isFilmValid(film)) {
             throw new ValidationException("Validation for adding film has failed.");
         }
 
@@ -41,7 +41,7 @@ public class FilmController {
 
     @PutMapping("/films")
     public Film putFilm(@RequestBody Film film) {
-        if(!isFilmValid(film)) {
+        if (!isFilmValid(film)) {
             throw new ValidationException("Validation for editing film has failed.");
         }
 
