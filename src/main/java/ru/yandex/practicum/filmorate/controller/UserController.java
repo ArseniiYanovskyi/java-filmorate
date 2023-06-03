@@ -25,7 +25,7 @@ public class UserController {
 
     @PostMapping("/users")
     @ExceptionHandler
-    public User postUser(@Valid @RequestBody User user){
+    public User postUser(@RequestBody User user){
         if(!isUserValid(user)) {
             throw new ValidationException("Validation for adding user has failed.");
         }
@@ -42,7 +42,7 @@ public class UserController {
 
     @PutMapping("/users")
     @ExceptionHandler
-    public User putUser(@Valid @RequestBody User user){
+    public User putUser(@RequestBody User user){
         if(!isUserValid(user)) {
             throw new ValidationException("Validation for updating user has failed.");
         }
