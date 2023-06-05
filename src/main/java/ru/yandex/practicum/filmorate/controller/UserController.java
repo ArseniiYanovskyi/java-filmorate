@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -13,13 +15,13 @@ import java.util.List;
 
 @RestController
 public class UserController {
-    private static final InMemoryUserRepository usersRepository = new InMemoryUserRepository();
+    private static final UserService userService = new UserServiceImpl(new InMemoryUserRepository());
     private static final Logger log = LoggerFactory.getLogger("UserController");
 
     @GetMapping("/users")
     public List<User> getUsersList() {
         log.debug("Received request for users list.");
-        return usersRepository.getAllUsers();
+        return userService.getAll();
     }
 
     @PostMapping("/users")
@@ -29,10 +31,9 @@ public class UserController {
             throw new ValidationException("Validation for adding user has failed.");
         }
 
-        usersRepository.addUser(user);
-        log.debug("User ID {} Name: {} Email: {} added successfully.",
+        log.debug("User ID {} Name: {} Email: {} adding in progress.",
                 user.getId(), user.getName(), user.getEmail());
-        return usersRepository.getUserById(user.getId());
+        return userService.addUser(user);
     }
 
 
@@ -43,16 +44,15 @@ public class UserController {
             throw new ValidationException("Validation for updating user has failed.");
         }
 
-        usersRepository.editAlreadyExistingUser(user);
-        log.debug("User ID {} Name: {} Email: {} edited successfully.",
+        log.debug("User ID {} Name: {} Email: {} editing in progress.",
                 user.getId(), user.getName(), user.getEmail());
-        return usersRepository.getUserById(user.getId());
+        return userService.updateUser(user);
     }
 
     private boolean isUserValid(User user) {
         if (user.getId() == 0) {
             log.debug("Setting new id for user.");
-            user.setId(usersRepository.getAllUsers().size() + 1);
+            user.setId(userService.getAll().size() + 1);
         }
         if (user.getEmail() == null || !isEmailValid(user.getEmail())) {
             log.debug("Validation for user has failed. Incorrect email.");
@@ -84,6 +84,6 @@ public class UserController {
     }
 
     public void deleteAllUsers() {
-        usersRepository.clear();
+        userService.clearRepository();
     }
 }

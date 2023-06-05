@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.FilmServiceImpl;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,14 +15,13 @@ import java.util.List;
 @RestController
 public class FilmController {
     private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
-    private static final InMemoryFilmRepository filmRepository = new InMemoryFilmRepository();
-
+    private static final FilmService filmService = new FilmServiceImpl(new InMemoryFilmRepository());
     private static final Logger log = LoggerFactory.getLogger("FilmController");
 
     @GetMapping("/films")
     public List<Film> getFilmsList() {
         log.debug("Received request for films list.");
-        return filmRepository.getAllFilms();
+        return filmService.getAll();
     }
 
     @PostMapping("/films")
@@ -28,9 +29,8 @@ public class FilmController {
         if (!isFilmValid(film)) {
             throw new ValidationException("Validation for adding film has failed.");
         }
-        filmRepository.addFilm(film);
-        log.debug("Film ID {} Title: {} added successfully.", film.getId(), film.getName());
-        return filmRepository.getFilmById(film.getId());
+        log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
+        return filmService.addFilm(film);
     }
 
     @PutMapping("/films")
@@ -39,15 +39,14 @@ public class FilmController {
             throw new ValidationException("Validation for editing film has failed.");
         }
 
-        filmRepository.editExistingFilm(film);
-        log.debug("Film ID {} Title: {} edited successfully.", film.getId(), film.getName());
-        return filmRepository.getFilmById(film.getId());
+        log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
+        return filmService.updateFilm(film);
     }
 
     private boolean isFilmValid(Film film) {
         if (film.getId() == 0) {
             log.debug("Setting new id for film.");
-            film.setId(filmRepository.getAllFilms().size() + 1);
+            film.setId(filmService.getAll().size() + 1);
         }
         if (film.getName() == null || film.getName().isBlank()) {
             log.debug("Validation for film has failed. Incorrect film name, might be: lesser 1 char.");
@@ -71,6 +70,6 @@ public class FilmController {
 
     public void deleteAllFilms() {
         log.debug("Deleting all films data.");
-        filmRepository.clear();
+        filmService.clearRepository();
     }
 }
