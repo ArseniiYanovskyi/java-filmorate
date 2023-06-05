@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,12 +28,9 @@ public class UserController {
         if (!isUserValid(user)) {
             throw new ValidationException("Validation for adding user has failed.");
         }
-        if (usersRepository.isUserPresent(user)) {
-            log.debug("Failed to add new user, user with this Email already exist.");
-            throw new ValidationException("Failed to add new user.");
-        }
+
         usersRepository.addUser(user);
-        log.debug("User ID {} Name {} Email {} added successfully.",
+        log.debug("User ID {} Name: {} Email: {} added successfully.",
                 user.getId(), user.getName(), user.getEmail());
         return usersRepository.getUserById(user.getId());
     }
@@ -46,13 +43,8 @@ public class UserController {
             throw new ValidationException("Validation for updating user has failed.");
         }
 
-        if (!usersRepository.isUserPresent(user)) {
-            log.debug("Editing user has failed, user has not been found.");
-            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this email does not present in database.");
-        }
-
         usersRepository.editAlreadyExistingUser(user);
-        log.debug("User ID {} Name {} Email {} added or edited successfully.",
+        log.debug("User ID {} Name: {} Email: {} edited successfully.",
                 user.getId(), user.getName(), user.getEmail());
         return usersRepository.getUserById(user.getId());
     }
@@ -70,7 +62,7 @@ public class UserController {
             log.debug("Validation for user has failed. Incorrect login(might be spaces).");
             return false;
         }
-        if (user.getBirthday() == null || !isBirthDateValid(user.getBirthday())) {
+        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
             log.debug("Validation for user has failed. Incorrect birthdate, might be: birthdate is future.");
             return false;
         }
@@ -80,22 +72,6 @@ public class UserController {
             return true;
         }
         log.debug("Validation for new user was successfully finished.");
-        return true;
-    }
-
-    private boolean isBirthDateValid(String birthDateLine) {
-        String[] splitBirthDateLine = birthDateLine.split("-");
-
-        int birthYear = Integer.parseInt(splitBirthDateLine[0]);
-        int birthMonth = Integer.parseInt(splitBirthDateLine[1]);
-        int birthDay = Integer.parseInt(splitBirthDateLine[2]);
-
-        LocalDateTime birthDate = LocalDateTime.of(birthYear, birthMonth, birthDay, 0, 0, 0);
-        LocalDateTime now = LocalDateTime.now();
-
-        if (birthDate.isAfter(now)) {
-            return false;
-        }
         return true;
     }
 
