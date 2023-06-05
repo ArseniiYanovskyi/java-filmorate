@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
@@ -50,7 +52,7 @@ public class FilmController {
         }
 
         if (film.getId() == 0 || filmService.getOptionalOfRequiredFilmById(film.getId()).isEmpty()) {
-            throw new ValidationException("Film with this Id does not exist in repository.");
+            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "Film with this Id does not exist in repository.");
         }
 
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());

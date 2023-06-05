@@ -151,5 +151,17 @@ class FilmControllerTests {
 		}
 
 		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
+
+		film.setName("FilmName");
+		film.setId(998);
+
+		try {
+			filmController.postFilm(film);
+		} catch (ValidationException e) {
+			System.out.println(e.getMessage());
+			System.out.println("Expected error has occurred for trying to post film with present id.");
+		}
+
+		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 	}
 }

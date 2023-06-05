@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
@@ -54,7 +56,7 @@ public class UserController {
         }
 
         if (user.getId() == 0 || userService.getOptionalOfRequiredUserById(user.getId()).isEmpty()) {
-            throw new ValidationException("User with this Id does not exist in repository.");
+            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this Id does not exist in repository.");
         }
 
         log.debug("User ID {} Name: {} Email: {} editing in progress.",
