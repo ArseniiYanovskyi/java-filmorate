@@ -16,6 +16,7 @@ import java.util.List;
 @SpringBootTest
 class FilmControllerTests {
 	private FilmController filmController;
+	
 	@BeforeEach
 	void resetController() {
 		filmController = new FilmController();
