@@ -120,6 +120,5 @@ class UserControllerTests {
         }
 
         Assertions.assertEquals(new ArrayList<>(), userController.getUsersList());
-
     }
 }
