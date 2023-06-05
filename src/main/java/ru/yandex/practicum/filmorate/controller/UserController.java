@@ -4,64 +4,67 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
-import java.time.LocalDateTime;
+import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 public class UserController {
-    private static final InMemoryUserRepository usersRepository = new InMemoryUserRepository();
-    private static final Logger log = LoggerFactory.getLogger("UserController");
+    private final UserService userService;
+    private final Logger log;
+
+    public UserController() {
+        this.userService = new UserServiceImpl(new InMemoryUserRepository());
+        this.log = LoggerFactory.getLogger("UserController");
+    }
 
     @GetMapping("/users")
     public List<User> getUsersList() {
         log.debug("Received request for users list.");
-        return usersRepository.getAllUsers();
+        return userService.getAll();
     }
 
-    @PostMapping("/users")
+    @PostMapping(value = "/users", consumes = {"application/json"})
     @ExceptionHandler
-    public User postUser(@RequestBody User user) {
+    public User postUser(@Valid @RequestBody User user) {
         if (!isUserValid(user)) {
             throw new ValidationException("Validation for adding user has failed.");
         }
-        if (usersRepository.isUserPresent(user)) {
-            log.debug("Failed to add new user, user with this Email already exist.");
-            throw new ValidationException("Failed to add new user.");
+
+        if (user.getId() != 0) {
+            throw new ValidationException("User should not contains ID to be added.");
         }
-        usersRepository.addUser(user);
-        log.debug("User ID {} Name {} Email {} added successfully.",
+
+        log.debug("User ID {} Name: {} Email: {} adding in progress.",
                 user.getId(), user.getName(), user.getEmail());
-        return usersRepository.getUserById(user.getId());
+        return userService.addUser(user);
     }
 
 
-    @PutMapping("/users")
+    @PutMapping(value = "/users", consumes = {"application/json"})
     @ExceptionHandler
-    public User putUser(@RequestBody User user) {
+    public User putUser(@Valid @RequestBody User user) {
         if (!isUserValid(user)) {
             throw new ValidationException("Validation for updating user has failed.");
         }
 
-        if (!usersRepository.isUserPresent(user)) {
-            log.debug("Editing user has failed, user has not been found.");
-            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this email does not present in database.");
+        if (user.getId() == 0 || userService.getOptionalOfRequiredUserById(user.getId()).isEmpty()) {
+            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "User with this Id does not exist in repository.");
         }
 
-        usersRepository.editAlreadyExistingUser(user);
-        log.debug("User ID {} Name {} Email {} added or edited successfully.",
+        log.debug("User ID {} Name: {} Email: {} editing in progress.",
                 user.getId(), user.getName(), user.getEmail());
-        return usersRepository.getUserById(user.getId());
+        return userService.updateUser(user);
     }
 
     private boolean isUserValid(User user) {
-        if (user.getId() == 0) {
-            log.debug("Setting new id for user.");
-            user.setId(usersRepository.getAllUsers().size() + 1);
-        }
         if (user.getEmail() == null || !isEmailValid(user.getEmail())) {
             log.debug("Validation for user has failed. Incorrect email.");
             return false;
@@ -70,7 +73,7 @@ public class UserController {
             log.debug("Validation for user has failed. Incorrect login(might be spaces).");
             return false;
         }
-        if (user.getBirthday() == null || !isBirthDateValid(user.getBirthday())) {
+        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
             log.debug("Validation for user has failed. Incorrect birthdate, might be: birthdate is future.");
             return false;
         }
@@ -83,27 +86,15 @@ public class UserController {
         return true;
     }
 
-    private boolean isBirthDateValid(String birthDateLine) {
-        String[] splitBirthDateLine = birthDateLine.split("-");
-
-        int birthYear = Integer.parseInt(splitBirthDateLine[0]);
-        int birthMonth = Integer.parseInt(splitBirthDateLine[1]);
-        int birthDay = Integer.parseInt(splitBirthDateLine[2]);
-
-        LocalDateTime birthDate = LocalDateTime.of(birthYear, birthMonth, birthDay, 0, 0, 0);
-        LocalDateTime now = LocalDateTime.now();
-
-        if (birthDate.isAfter(now)) {
-            return false;
-        }
-        return true;
-    }
-
 
     private boolean isEmailValid(String email) {
         if (!email.contains("@")) {
             return false;
         }
         return true;
+    }
+
+    public void deleteAllUsers() {
+        userService.clearRepository();
     }
 }
