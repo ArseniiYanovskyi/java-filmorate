@@ -13,6 +13,7 @@ public class FilmServiceImpl implements FilmService {
     public FilmServiceImpl(FilmRepository filmRepository) {
         this.filmRepository = filmRepository;
     }
+
     @Override
     public List<Film> getAll() {
         return filmRepository.getAll();

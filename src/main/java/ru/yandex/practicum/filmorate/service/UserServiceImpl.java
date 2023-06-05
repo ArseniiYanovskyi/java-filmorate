@@ -9,6 +9,7 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
     public UserRepository userRepository;
+
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
