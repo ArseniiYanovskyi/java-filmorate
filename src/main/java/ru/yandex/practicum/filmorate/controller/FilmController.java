@@ -68,4 +68,9 @@ public class FilmController {
         log.debug("Validation for new film was successfully finished.");
         return true;
     }
+
+    public void deleteAllFilms() {
+        log.debug("Deleting all films data.");
+        filmRepository.clear();
+    }
 }

@@ -40,4 +40,8 @@ public class InMemoryFilmRepository {
         }
         return false;
     }
+
+    public void clear() {
+        filmsData.clear();
+    }
 }

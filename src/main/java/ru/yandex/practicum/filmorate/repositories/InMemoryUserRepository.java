@@ -38,4 +38,8 @@ public class InMemoryUserRepository {
     public ArrayList<User> getAllUsers() {
         return new ArrayList<>(usersData.values());
     }
+
+    public void clear() {
+        usersData.clear();
+    }
 }

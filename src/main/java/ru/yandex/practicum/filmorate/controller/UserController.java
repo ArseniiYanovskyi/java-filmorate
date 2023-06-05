@@ -7,8 +7,8 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -24,7 +24,7 @@ public class UserController {
 
     @PostMapping("/users")
     @ExceptionHandler
-    public User postUser(@RequestBody User user) {
+    public User postUser(@Valid @RequestBody User user) {
         if (!isUserValid(user)) {
             throw new ValidationException("Validation for adding user has failed.");
         }
@@ -38,7 +38,7 @@ public class UserController {
 
     @PutMapping("/users")
     @ExceptionHandler
-    public User putUser(@RequestBody User user) {
+    public User putUser(@Valid @RequestBody User user) {
         if (!isUserValid(user)) {
             throw new ValidationException("Validation for updating user has failed.");
         }
@@ -81,5 +81,9 @@ public class UserController {
             return false;
         }
         return true;
+    }
+
+    public void deleteAllUsers() {
+        usersRepository.clear();
     }
 }
