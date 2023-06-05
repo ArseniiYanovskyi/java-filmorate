@@ -12,6 +12,7 @@ import java.util.HashMap;
 @Repository
 public class InMemoryFilmRepository implements FilmRepository {
     private HashMap<Integer, Film> filmsData = new HashMap<>();
+    private int filmIdCounter = 0;
 
     @Override
     public List<Film> getAll() {
@@ -21,6 +22,7 @@ public class InMemoryFilmRepository implements FilmRepository {
     @Override
     public Film addFilm(Film film) {
         if (!isFilmPresent(film)) {
+            film.setId(++filmIdCounter);
             filmsData.put(film.getId(), film);
         } else {
             throw new IncorrectRequestException("Film with this information already added to repository.");

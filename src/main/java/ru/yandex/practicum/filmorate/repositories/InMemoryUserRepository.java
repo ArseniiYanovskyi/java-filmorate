@@ -13,6 +13,7 @@ import java.util.HashMap;
 @Repository
 public class InMemoryUserRepository implements UserRepository {
     private HashMap<Integer, User> usersData = new HashMap<>();
+    private int userIdCounter = 0;
 
     @Override
     public List<User> getAll() {
@@ -22,6 +23,7 @@ public class InMemoryUserRepository implements UserRepository {
     @Override
     public User addUser(User user) {
         if (!isUserPresent(user)) {
+            user.setId(++userIdCounter);
             usersData.put(user.getId(), user);
         } else {
             throw new ValidationException("Failed to add new user, id field should be empty.");

@@ -36,6 +36,10 @@ public class UserController {
             throw new ValidationException("Validation for adding user has failed.");
         }
 
+        if (user.getId() != 0) {
+            throw new ValidationException("User should not contains ID to be added.");
+        }
+
         log.debug("User ID {} Name: {} Email: {} adding in progress.",
                 user.getId(), user.getName(), user.getEmail());
         return userService.addUser(user);
@@ -49,16 +53,16 @@ public class UserController {
             throw new ValidationException("Validation for updating user has failed.");
         }
 
+        if (user.getId() == 0 || userService.getOptionalOfRequiredUserById(user.getId()).isEmpty()) {
+            throw new ValidationException("User with this Id does not exist in repository.");
+        }
+
         log.debug("User ID {} Name: {} Email: {} editing in progress.",
                 user.getId(), user.getName(), user.getEmail());
         return userService.updateUser(user);
     }
 
     private boolean isUserValid(User user) {
-        if (user.getId() == 0) {
-            log.debug("Setting new id for user.");
-            user.setId(userService.getAll().size() + 1);
-        }
         if (user.getEmail() == null || !isEmailValid(user.getEmail())) {
             log.debug("Validation for user has failed. Incorrect email.");
             return false;

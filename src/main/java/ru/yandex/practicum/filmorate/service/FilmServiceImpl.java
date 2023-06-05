@@ -5,6 +5,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repositories.FilmRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FilmServiceImpl implements FilmService {
@@ -22,6 +23,10 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film addFilm(Film film) {
         return filmRepository.addFilm(film);
+    }
+
+    public Optional<Film> getOptionalOfRequiredFilmById(int id) {
+        return Optional.ofNullable(filmRepository.getFilmById(id));
     }
 
     @Override

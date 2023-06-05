@@ -34,6 +34,11 @@ public class FilmController {
         if (!isFilmValid(film)) {
             throw new ValidationException("Validation for adding film has failed.");
         }
+
+        if (film.getId() != 0) {
+            throw new ValidationException("Film should not contains ID to be added.");
+        }
+
         log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
         return filmService.addFilm(film);
     }
@@ -44,15 +49,15 @@ public class FilmController {
             throw new ValidationException("Validation for editing film has failed.");
         }
 
+        if (film.getId() == 0 || filmService.getOptionalOfRequiredFilmById(film.getId()).isEmpty()) {
+            throw new ValidationException("Film with this Id does not exist in repository.");
+        }
+
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
         return filmService.updateFilm(film);
     }
 
     private boolean isFilmValid(Film film) {
-        if (film.getId() == 0) {
-            log.debug("Setting new id for film.");
-            film.setId(filmService.getAll().size() + 1);
-        }
         if (film.getName() == null || film.getName().isBlank()) {
             log.debug("Validation for film has failed. Incorrect film name, might be: lesser 1 char.");
             return false;
