@@ -7,7 +7,11 @@ import java.util.List;
 
 public interface FilmService {
     public List<Film> getAll();
+
     public Film addFilm(Film film);
+
+
     public Film updateFilm(Film film);
+
     public void clearRepository();
 }
