@@ -15,8 +15,13 @@ import java.util.List;
 
 @RestController
 public class UserController {
-    private static final UserService userService = new UserServiceImpl(new InMemoryUserRepository());
-    private static final Logger log = LoggerFactory.getLogger("UserController");
+    private final UserService userService;
+    private final Logger log;
+
+    public UserController() {
+        this.userService = new UserServiceImpl(new InMemoryUserRepository());
+        this.log = LoggerFactory.getLogger("UserController");
+    }
 
     @GetMapping("/users")
     public List<User> getUsersList() {
@@ -24,7 +29,7 @@ public class UserController {
         return userService.getAll();
     }
 
-    @PostMapping("/users")
+    @PostMapping(value = "/users", consumes = {"application/json"})
     @ExceptionHandler
     public User postUser(@Valid @RequestBody User user) {
         if (!isUserValid(user)) {
@@ -37,7 +42,7 @@ public class UserController {
     }
 
 
-    @PutMapping("/users")
+    @PutMapping(value = "/users", consumes = {"application/json"})
     @ExceptionHandler
     public User putUser(@Valid @RequestBody User user) {
         if (!isUserValid(user)) {

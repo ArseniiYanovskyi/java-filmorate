@@ -15,8 +15,13 @@ import java.util.List;
 @RestController
 public class FilmController {
     private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
-    private static final FilmService filmService = new FilmServiceImpl(new InMemoryFilmRepository());
-    private static final Logger log = LoggerFactory.getLogger("FilmController");
+    private final FilmService filmService;
+    private final Logger log;
+
+    public FilmController() {
+        this.filmService = new FilmServiceImpl(new InMemoryFilmRepository());
+        this.log = LoggerFactory.getLogger("FilmController");
+    }
 
     @GetMapping("/films")
     public List<Film> getFilmsList() {
@@ -24,7 +29,7 @@ public class FilmController {
         return filmService.getAll();
     }
 
-    @PostMapping("/films")
+    @PostMapping(value = "/films", consumes = {"application/json"})
     public Film postFilm(@RequestBody Film film) {
         if (!isFilmValid(film)) {
             throw new ValidationException("Validation for adding film has failed.");
@@ -33,7 +38,7 @@ public class FilmController {
         return filmService.addFilm(film);
     }
 
-    @PutMapping("/films")
+    @PutMapping(value = "/films", consumes = {"application/json"})
     public Film putFilm(@RequestBody Film film) {
         if (!isFilmValid(film)) {
             throw new ValidationException("Validation for editing film has failed.");
