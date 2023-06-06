@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public Optional<User> getOptionalOfRequiredUserById(int id) {
-        return Optional.ofNullable(userRepository.getUserById(id));
+        return userRepository.getOptionalOfUserById(id);
     }
 
     @Override

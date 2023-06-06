@@ -26,7 +26,7 @@ public class FilmServiceImpl implements FilmService {
     }
 
     public Optional<Film> getOptionalOfRequiredFilmById(int id) {
-        return Optional.ofNullable(filmRepository.getFilmById(id));
+        return filmRepository.getOptionalOfFilmById(id);
     }
 
     @Override

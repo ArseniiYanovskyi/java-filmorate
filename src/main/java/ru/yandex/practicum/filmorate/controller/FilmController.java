@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
@@ -32,13 +32,10 @@ public class FilmController {
     }
 
     @PostMapping(value = "/films", consumes = {"application/json"})
+    @ResponseStatus(code = HttpStatus.CREATED)
     public Film postFilm(@RequestBody Film film) {
         if (!isFilmValid(film)) {
             throw new ValidationException("Validation for adding film has failed.");
-        }
-
-        if (film.getId() != 0) {
-            throw new ValidationException("Film should not contains ID to be added.");
         }
 
         log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
@@ -46,13 +43,14 @@ public class FilmController {
     }
 
     @PutMapping(value = "/films", consumes = {"application/json"})
+    @ResponseStatus(code = HttpStatus.OK)
     public Film putFilm(@RequestBody Film film) {
         if (!isFilmValid(film)) {
             throw new ValidationException("Validation for editing film has failed.");
         }
 
         if (film.getId() == 0 || filmService.getOptionalOfRequiredFilmById(film.getId()).isEmpty()) {
-            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "Film with this Id does not exist in repository.");
+            throw new NotFoundException("Film with this Id does not exist in repository.");
         }
 
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());

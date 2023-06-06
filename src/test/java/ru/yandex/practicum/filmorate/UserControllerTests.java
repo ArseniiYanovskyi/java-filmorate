@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -78,6 +79,9 @@ class UserControllerTests {
         userController.putUser(userForEditing);
 
         Assertions.assertEquals(userForEditing, userController.getUsersList().get(0));
+
+        userForEditing.setId(789);
+        Assertions.assertThrows(NotFoundException.class, () -> userController.putUser(userForEditing));
     }
 
     @Test
@@ -88,36 +92,21 @@ class UserControllerTests {
         user.setLogin("    ");
         user.setBirthday(LocalDate.of(1990, 5, 20));
 
-        try {
-            userController.postUser(user);
-        } catch (ValidationException e) {
-            System.out.println(e.getMessage());
-            System.out.println("Expected error has occurred for trying to post user with empty login.");
-        }
+        Assertions.assertThrows(ValidationException.class, () -> userController.postUser(user));
 
         Assertions.assertEquals(new ArrayList<>(), userController.getUsersList());
 
         user.setLogin("AlexLogin");
         user.setEmail("Alex_yandex.ru");
 
-        try {
-            userController.postUser(user);
-        } catch (ValidationException e) {
-            System.out.println(e.getMessage());
-            System.out.println("Expected error has occurred for trying to post user with incorrect email.");
-        }
+        Assertions.assertThrows(ValidationException.class, () -> userController.postUser(user));
 
         Assertions.assertEquals(new ArrayList<>(), userController.getUsersList());
 
         user.setEmail("Alex@yandex.ru");
         user.setBirthday(LocalDate.of(2033, 7, 25));
 
-        try {
-            userController.postUser(user);
-        } catch (ValidationException e) {
-            System.out.println(e.getMessage());
-            System.out.println("Expected error has occurred for trying to post user with birthday in future.");
-        }
+        Assertions.assertThrows(ValidationException.class, () -> userController.postUser(user));
 
         Assertions.assertEquals(new ArrayList<>(), userController.getUsersList());
     }
