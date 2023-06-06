@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -90,6 +91,9 @@ class FilmControllerTests {
 		Assertions.assertEquals("AnotherFilmName", filmController.getFilmsList().get(0).getName());
 		Assertions.assertEquals(maxCharSeqForDesc, filmController.getFilmsList().get(0).getDescription());
 		Assertions.assertEquals(4, filmController.getFilmsList().get(0).getRate());
+
+		anotherFilm.setId(789);
+		Assertions.assertThrows(NotFoundException.class, () -> filmController.putFilm(anotherFilm));
 	}
 
 	@Test
@@ -107,60 +111,28 @@ class FilmControllerTests {
 		film.setReleaseDate(LocalDate.of(1999, 10, 6));
 		film.setDuration(120);
 
-		try {
-			filmController.postFilm(film);
-		} catch (ValidationException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Expected error has occurred for trying to post film with wrong length description.");
-		}
+		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
 		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 
 		film.setDescription("NowDescriptionCorrect");
 		film.setDuration(-10);
 
-		try {
-			filmController.postFilm(film);
-		} catch (ValidationException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Expected error has occurred for trying to post film with negative duration length.");
-		}
+		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
 		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 
 		film.setDuration(120);
 		film.setReleaseDate(LocalDate.of(1866, 10, 19));
 
-		try {
-			filmController.postFilm(film);
-		} catch (ValidationException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Expected error has occurred for trying to post film with incorrect release date.");
-		}
+		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
 		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 
 		film.setReleaseDate(LocalDate.of(1999, 10, 6));
 		film.setName("");
 
-		try {
-			filmController.postFilm(film);
-		} catch (ValidationException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Expected error has occurred for trying to post film with empty name.");
-		}
-
-		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
-
-		film.setName("FilmName");
-		film.setId(998);
-
-		try {
-			filmController.postFilm(film);
-		} catch (ValidationException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Expected error has occurred for trying to post film with present id.");
-		}
+		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
 		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 	}

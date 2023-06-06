@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.repositories;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Repository
 public class InMemoryFilmRepository implements FilmRepository {
@@ -25,7 +25,7 @@ public class InMemoryFilmRepository implements FilmRepository {
             film.setId(++filmIdCounter);
             filmsData.put(film.getId(), film);
         } else {
-            throw new IncorrectRequestException("Film with this information already added to repository.");
+            throw new NotFoundException("Film with this information already added to repository.");
         }
         return filmsData.get(film.getId());
     }
@@ -35,14 +35,14 @@ public class InMemoryFilmRepository implements FilmRepository {
         if (isFilmPresent(film)) {
             filmsData.put(film.getId(), film);
         } else {
-            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "This film does not present in database.");
+            throw new NotFoundException("This film does not present in database.");
         }
         return filmsData.get(film.getId());
     }
 
     @Override
-    public Film getFilmById(int filmId) {
-        return filmsData.get(filmId);
+    public Optional<Film> getOptionalOfFilmById(int filmId) {
+        return Optional.ofNullable(filmsData.get(filmId));
     }
 
     @Override

@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.repositories;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectRequestException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Repository
 public class InMemoryUserRepository implements UserRepository {
@@ -36,14 +36,14 @@ public class InMemoryUserRepository implements UserRepository {
         if (isUserPresent(user)) {
             usersData.put(user.getId(), user);
         } else {
-            throw new IncorrectRequestException(HttpStatus.NOT_FOUND, "This user has not been found in database.");
+            throw new NotFoundException("This user has not been found in database.");
         }
         return usersData.get(user.getId());
     }
 
     @Override
-    public User getUserById(int id) {
-        return usersData.get(id);
+    public Optional<User> getOptionalOfUserById(int id) {
+        return Optional.ofNullable(usersData.get(id));
     }
 
     @Override
