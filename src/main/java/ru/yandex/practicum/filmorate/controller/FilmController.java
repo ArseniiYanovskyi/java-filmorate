@@ -2,14 +2,14 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.FilmServiceImpl;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,10 +18,13 @@ import java.util.List;
 public class FilmController {
     private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
     private final FilmService filmService;
+    private final UserService userService;
     private final Logger log;
 
-    public FilmController() {
-        this.filmService = new FilmServiceImpl(new InMemoryFilmRepository());
+    @Autowired
+    public FilmController(FilmService filmService, UserService userService) {
+        this.filmService = filmService;
+        this.userService = userService;
         this.log = LoggerFactory.getLogger("FilmController");
     }
 
@@ -55,6 +58,72 @@ public class FilmController {
 
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
         return filmService.updateFilm(film);
+    }
+
+    @GetMapping(value = "/films/popular")
+    public List<Film> getTopFilms(@RequestParam(defaultValue = "10") String count) {
+        log.debug("Received request for top {} rated films.", count);
+        return filmService.getTopFilms(Integer.parseInt(count));
+    }
+
+    @PutMapping(value = "/films/{id}/like/{userId}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    public void setUserLikeToFilm(@PathVariable String id, @PathVariable String userId) {
+        int filmId = Integer.parseInt(id);
+        int userIdentifier = Integer.parseInt(userId);
+
+        log.debug("Received request for add new Like to film {} from user {}", filmId, userIdentifier);
+
+        if (filmService.getOptionalOfRequiredFilmById(filmId).isEmpty()) {
+            throw new NotFoundException("Film with id " + filmId + " has not been found.");
+        }
+
+        if (userService.getOptionalOfRequiredUserById(userIdentifier).isEmpty()) {
+            throw new NotFoundException("User with id " + userIdentifier + " has not been found.");
+        }
+
+        if (filmService.getOptionalOfRequiredFilmById(filmId).get().getLikes().contains(userIdentifier)) {
+            throw new ValidationException("This user already has set Like to Film " + filmId + ".");
+        }
+
+        filmService.addLike(filmId, userIdentifier);
+    }
+
+    @DeleteMapping(value = "/films/{id}/like/{userId}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public void deleteUserLikeToFilm(@PathVariable String id, @PathVariable String userId) {
+        int filmId = Integer.parseInt(id);
+        int userIdentifier = Integer.parseInt(userId);
+
+        log.debug("Received request for remove Like to film {} from user {}", filmId, userIdentifier);
+
+        if (filmService.getOptionalOfRequiredFilmById(filmId).isEmpty()) {
+            throw new NotFoundException("Film with id " + filmId + " has not been found.");
+        }
+
+        if (userService.getOptionalOfRequiredUserById(userIdentifier).isEmpty()) {
+            throw new NotFoundException("User with id " + userIdentifier + " has not been found.");
+        }
+
+        if (!filmService.getOptionalOfRequiredFilmById(filmId).get().getLikes().contains(userIdentifier)) {
+            throw new ValidationException("This user has not set Like to Film " + filmId + ".");
+        }
+
+        filmService.removeLike(filmId, userIdentifier);
+    }
+
+    @GetMapping(value = "/films/{id}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public Film getFilmById(@PathVariable String id) {
+        int filmId = Integer.parseInt(id);
+
+        log.debug("Received request to get film with ID {}", filmId);
+
+        if (filmService.getOptionalOfRequiredFilmById(filmId).isEmpty()) {
+            throw new NotFoundException("Film with id " + filmId + " has not been found.");
+        }
+
+        return filmService.getOptionalOfRequiredFilmById(filmId).get();
     }
 
     private boolean isFilmValid(Film film) {

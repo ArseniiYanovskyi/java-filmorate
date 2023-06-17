@@ -2,14 +2,14 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -18,10 +18,13 @@ import java.util.List;
 @RestController
 public class UserController {
     private final UserService userService;
+    private final FilmService filmService;
     private final Logger log;
 
-    public UserController() {
-        this.userService = new UserServiceImpl(new InMemoryUserRepository());
+    @Autowired
+    public UserController(UserService userService, FilmService filmService) {
+        this.userService = userService;
+        this.filmService = filmService;
         this.log = LoggerFactory.getLogger("UserController");
     }
 
@@ -58,6 +61,101 @@ public class UserController {
         log.debug("User ID {} Name: {} Email: {} editing in progress.",
                 user.getId(), user.getName(), user.getEmail());
         return userService.updateUser(user);
+    }
+
+    @PutMapping(value = "/users/{id}/friends/{friendId}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public void makeUsersMutualFriends(@PathVariable String id, @PathVariable String friendId) {
+        int oneUserId = Integer.parseInt(id);
+        int anotherUserId = Integer.parseInt(friendId);
+
+        log.debug("Received request to connect users as friend with ID {} and {}.", oneUserId, anotherUserId);
+
+        if (userService.getOptionalOfRequiredUserById(oneUserId).isEmpty()) {
+            throw new NotFoundException("User with ID " + oneUserId + " has not been found.");
+        }
+
+        if (userService.getOptionalOfRequiredUserById(anotherUserId).isEmpty()) {
+            throw new NotFoundException("User with ID " + anotherUserId + " has not been found.");
+        }
+
+        userService.addMutualFriend(oneUserId, anotherUserId);
+    }
+
+    @DeleteMapping(value = "/users/{id}/friends/{friendId}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public void breakMutualFriendship(@PathVariable String id, @PathVariable String friendId) {
+        int oneUserId = Integer.parseInt(id);
+        int anotherUserId = Integer.parseInt(friendId);
+
+        log.debug("Received request to break users friendship with ID {} and {}.", oneUserId, anotherUserId);
+
+        if (userService.getOptionalOfRequiredUserById(oneUserId).isEmpty()) {
+            throw new NotFoundException("User with ID " + oneUserId + " has not been found.");
+        }
+
+        if (userService.getOptionalOfRequiredUserById(anotherUserId).isEmpty()) {
+            throw new NotFoundException("User with ID " + anotherUserId + " has not been found.");
+        }
+
+        if (userService.getOptionalOfRequiredUserById(oneUserId).get().getFriends() == null
+                || userService.getOptionalOfRequiredUserById(anotherUserId).get().getFriends() == null) {
+            throw new ValidationException("Validation has failed, both or one of users friends list empty.");
+        }
+
+        if (!userService.getOptionalOfRequiredUserById(oneUserId).get().getFriends().contains(anotherUserId)
+                || !userService.getOptionalOfRequiredUserById(anotherUserId).get().getFriends().contains(oneUserId)) {
+            throw new ValidationException("Validation has failed, both or one of users is(are) not connected as friend(s).");
+        }
+
+        userService.removeMutualFriends(oneUserId, anotherUserId);
+    }
+
+    @GetMapping(value = "/users/{id}/friends")
+    @ResponseStatus(code = HttpStatus.OK)
+    public List<User> getFriendsList(@PathVariable String id) {
+        int userId = Integer.parseInt(id);
+
+        log.debug("Received request to get user with ID {} friends list", userId);
+
+        if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
+            throw new NotFoundException("User with ID " + userId + " has not been found.");
+        }
+
+        return userService.getFriendsList(userId);
+    }
+
+    @GetMapping(value = "/users/{id}/friends/common/{otherId}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public List<User> getMutualFriends(@PathVariable String id, @PathVariable String otherId) {
+        log.debug("Received request to get mutual friends users with IDs {} and {}", id, otherId);
+        int userId = Integer.parseInt(id);
+        int anotherUserId = Integer.parseInt(otherId);
+
+
+        if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
+            throw new NotFoundException("User with ID " + userId + " has not been found.");
+        }
+
+        if (userService.getOptionalOfRequiredUserById(anotherUserId).isEmpty()) {
+            throw new NotFoundException("User with ID " + anotherUserId + " has not been found.");
+        }
+
+        return userService.getMutualFriendsList(userId, anotherUserId);
+    }
+
+    @GetMapping(value = "/users/{id}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public User getUserById(@PathVariable String id) {
+        int userId = Integer.parseInt(id);
+
+        log.debug("Received request to get user with ID {}", userId);
+
+        if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
+            throw new NotFoundException("User with ID " + userId + " has not been found.");
+        }
+
+        return userService.getOptionalOfRequiredUserById(userId).get();
     }
 
     private boolean isUserValid(User user) {

@@ -1,15 +1,14 @@
 package ru.yandex.practicum.filmorate.repositories;
 
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Repository
+@Component
 public class InMemoryFilmRepository implements FilmRepository {
     private HashMap<Integer, Film> filmsData = new HashMap<>();
     private int filmIdCounter = 0;
@@ -38,6 +37,16 @@ public class InMemoryFilmRepository implements FilmRepository {
             throw new NotFoundException("This film does not present in database.");
         }
         return filmsData.get(film.getId());
+    }
+
+    @Override
+    public List<Film> getTopFilms(int size) {
+        return filmsData.values().stream()
+                .sorted((film1, film2) -> {
+                    int compareValue = film1.getLikes().size() - film2.getLikes().size();
+                    return -1 * compareValue;
+                })
+                .limit(size).collect(Collectors.toList());
     }
 
     @Override

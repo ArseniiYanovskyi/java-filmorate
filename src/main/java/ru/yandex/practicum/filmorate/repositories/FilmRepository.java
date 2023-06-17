@@ -6,13 +6,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmRepository {
-    public List<Film> getAll();
+    List<Film> getAll();
 
-    public Film addFilm(Film film);
+    Film addFilm(Film film);
 
-    public Film updateFilm(Film film);
+    Film updateFilm(Film film);
 
-    public Optional<Film> getOptionalOfFilmById(int id);
+    List<Film> getTopFilms(int size);
 
-    public void clear();
+    Optional<Film> getOptionalOfFilmById(int id);
+
+    void clear();
 }

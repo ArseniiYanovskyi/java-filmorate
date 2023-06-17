@@ -9,6 +9,10 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
+import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
+import ru.yandex.practicum.filmorate.service.FilmServiceImpl;
+import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,7 +24,8 @@ class FilmControllerTests {
 
 	@BeforeEach
 	void resetController() {
-		filmController = new FilmController();
+		filmController = new FilmController(new FilmServiceImpl(new InMemoryFilmRepository()),
+				new UserServiceImpl(new InMemoryUserRepository()));
 	}
 
 	@AfterEach

@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.repositories.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,6 +33,26 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(User user) {
         return userRepository.updateUser(user);
+    }
+
+    @Override
+    public void addMutualFriend(int userId, int friendId) {
+        userRepository.addFriendsAsMutual(userId, friendId);
+    }
+
+    @Override
+    public void removeMutualFriends(int userId, int friendId) {
+        userRepository.deleteFriendsAsMutual(userId, friendId);
+    }
+
+    @Override
+    public List<User> getFriendsList(int id) {
+        return userRepository.getFriendsList(id);
+    }
+
+    @Override
+    public List<User> getMutualFriendsList(int firstUserId, int secondUserId) {
+        return userRepository.getMutualFriends(firstUserId, secondUserId);
     }
 
     @Override

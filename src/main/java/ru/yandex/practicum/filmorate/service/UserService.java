@@ -6,13 +6,21 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    public List<User> getAll();
+    List<User> getAll();
 
-    public User addUser(User user);
+    User addUser(User user);
 
-    public Optional<User> getOptionalOfRequiredUserById(int id);
+    Optional<User> getOptionalOfRequiredUserById(int id);
 
-    public User updateUser(User user);
+    User updateUser(User user);
 
-    public void clearRepository();
+    void addMutualFriend(int userId, int friendId);
+
+    void removeMutualFriends(int userId, int friendId);
+
+    List<User> getMutualFriendsList(int firstUserId, int secondUserId);
+
+    List<User> getFriendsList(int id);
+
+    void clearRepository();
 }

@@ -6,13 +6,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmService {
-    public List<Film> getAll();
+    List<Film> getAll();
 
-    public Film addFilm(Film film);
+    Film addFilm(Film film);
 
-    public Optional<Film> getOptionalOfRequiredFilmById(int id);
+    Optional<Film> getOptionalOfRequiredFilmById(int id);
 
-    public Film updateFilm(Film film);
+    Film updateFilm(Film film);
 
-    public void clearRepository();
+    void addLike(int filmId, int userId);
+
+    void removeLike(int filmId, int userId);
+
+    List<Film> getTopFilms(int size);
+
+    void clearRepository();
 }
