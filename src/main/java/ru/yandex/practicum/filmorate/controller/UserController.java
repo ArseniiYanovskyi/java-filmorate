@@ -182,10 +182,7 @@ public class UserController {
 
 
     private boolean isEmailValid(String email) {
-        if (!email.contains("@")) {
-            return false;
-        }
-        return true;
+        return email.contains("@");
     }
 
     public void deleteAllUsers() {

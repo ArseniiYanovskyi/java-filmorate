@@ -1,16 +1,18 @@
 package ru.yandex.practicum.filmorate.repositories;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class InMemoryFilmRepository implements FilmRepository {
-    private HashMap<Integer, Film> filmsData = new HashMap<>();
+    private final HashMap<Integer, Film> filmsData = new HashMap<>();
     private int filmIdCounter = 0;
 
     @Override
@@ -60,10 +62,7 @@ public class InMemoryFilmRepository implements FilmRepository {
     }
 
     private boolean isFilmPresent(Film film) {
-        if (filmsData.containsKey(film.getId())) {
-            return true;
-        }
-        return false;
+        return filmsData.containsKey(film.getId());
     }
 
 

@@ -1,20 +1,19 @@
 package ru.yandex.practicum.filmorate.repositories;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class InMemoryUserRepository implements UserRepository {
-    private HashMap<Integer, User> usersData = new HashMap<>();
+    private final HashMap<Integer, User> usersData = new HashMap<>();
     private int userIdCounter = 0;
 
     @Override
@@ -59,7 +58,7 @@ public class InMemoryUserRepository implements UserRepository {
     public List<User> getFriendsList(int id) {
         return usersData.get(id).getFriends().stream()
                 .map(friendId -> {
-                    return usersData.get(Integer.valueOf(friendId));
+                    return usersData.get(friendId);
                 })
                 .collect(Collectors.toList());
     }
