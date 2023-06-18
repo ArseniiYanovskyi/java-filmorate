@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.repositories.FilmRepository;
 import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
 import ru.yandex.practicum.filmorate.repositories.UserRepository;
-import ru.yandex.practicum.filmorate.service.FilmServiceImpl;
 import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 import ru.yandex.practicum.filmorate.service.ValidatorImpl;
 
