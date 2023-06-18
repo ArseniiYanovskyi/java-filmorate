@@ -5,26 +5,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.Validator;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 public class FilmController {
-    private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
     private final FilmService filmService;
-    private final UserService userService;
     private final Logger log;
+    private final Validator validator;
 
     @Autowired
-    public FilmController(FilmService filmService, UserService userService) {
+    public FilmController(FilmService filmService, Validator validator) {
         this.filmService = filmService;
-        this.userService = userService;
+        this.validator = validator;
         this.log = LoggerFactory.getLogger("FilmController");
     }
 
@@ -37,9 +33,9 @@ public class FilmController {
     @PostMapping(value = "/films", consumes = {"application/json"})
     @ResponseStatus(code = HttpStatus.CREATED)
     public Film postFilm(@RequestBody Film film) {
-        if (!isFilmValid(film)) {
-            throw new ValidationException("Validation for adding film has failed.");
-        }
+        log.debug("Received request to add new film.");
+
+        validator.checkFilmValidation(film);
 
         log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
         return filmService.addFilm(film);
@@ -48,13 +44,10 @@ public class FilmController {
     @PutMapping(value = "/films", consumes = {"application/json"})
     @ResponseStatus(code = HttpStatus.OK)
     public Film putFilm(@RequestBody Film film) {
-        if (!isFilmValid(film)) {
-            throw new ValidationException("Validation for editing film has failed.");
-        }
+        log.debug("Received request to edit existing film.");
 
-        if (film.getId() == 0 || filmService.getOptionalOfRequiredFilmById(film.getId()).isEmpty()) {
-            throw new NotFoundException("Film with this Id does not exist in repository.");
-        }
+        validator.checkFilmValidation(film);
+        validator.checkIsFilmPresent(film.getId());
 
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
         return filmService.updateFilm(film);
@@ -69,22 +62,12 @@ public class FilmController {
     @PutMapping(value = "/films/{id}/like/{userId}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void setUserLikeToFilm(@PathVariable String id, @PathVariable String userId) {
+        log.debug("Received request for add new Like to film {} from user {}", id, userId);
+
         int filmId = Integer.parseInt(id);
         int userIdentifier = Integer.parseInt(userId);
 
-        log.debug("Received request for add new Like to film {} from user {}", filmId, userIdentifier);
-
-        if (filmService.getOptionalOfRequiredFilmById(filmId).isEmpty()) {
-            throw new NotFoundException("Film with id " + filmId + " has not been found.");
-        }
-
-        if (userService.getOptionalOfRequiredUserById(userIdentifier).isEmpty()) {
-            throw new NotFoundException("User with id " + userIdentifier + " has not been found.");
-        }
-
-        if (filmService.getOptionalOfRequiredFilmById(filmId).get().getLikes().contains(userIdentifier)) {
-            throw new ValidationException("This user already has set Like to Film " + filmId + ".");
-        }
+        validator.checkIsPossibleToAddLike(filmId, userIdentifier);
 
         filmService.addLike(filmId, userIdentifier);
     }
@@ -92,22 +75,12 @@ public class FilmController {
     @DeleteMapping(value = "/films/{id}/like/{userId}")
     @ResponseStatus(code = HttpStatus.OK)
     public void deleteUserLikeToFilm(@PathVariable String id, @PathVariable String userId) {
+        log.debug("Received request for remove Like to film {} from user {}", id, userId);
+
         int filmId = Integer.parseInt(id);
         int userIdentifier = Integer.parseInt(userId);
 
-        log.debug("Received request for remove Like to film {} from user {}", filmId, userIdentifier);
-
-        if (filmService.getOptionalOfRequiredFilmById(filmId).isEmpty()) {
-            throw new NotFoundException("Film with id " + filmId + " has not been found.");
-        }
-
-        if (userService.getOptionalOfRequiredUserById(userIdentifier).isEmpty()) {
-            throw new NotFoundException("User with id " + userIdentifier + " has not been found.");
-        }
-
-        if (!filmService.getOptionalOfRequiredFilmById(filmId).get().getLikes().contains(userIdentifier)) {
-            throw new ValidationException("This user has not set Like to Film " + filmId + ".");
-        }
+        validator.checkIsPossibleToRemoveLike(filmId, userIdentifier);
 
         filmService.removeLike(filmId, userIdentifier);
     }
@@ -115,36 +88,13 @@ public class FilmController {
     @GetMapping(value = "/films/{id}")
     @ResponseStatus(code = HttpStatus.OK)
     public Film getFilmById(@PathVariable String id) {
+        log.debug("Received request to get film with ID {}", id);
+
         int filmId = Integer.parseInt(id);
 
-        log.debug("Received request to get film with ID {}", filmId);
-
-        if (filmService.getOptionalOfRequiredFilmById(filmId).isEmpty()) {
-            throw new NotFoundException("Film with id " + filmId + " has not been found.");
-        }
+        validator.checkIsFilmPresent(filmId);
 
         return filmService.getOptionalOfRequiredFilmById(filmId).get();
-    }
-
-    private boolean isFilmValid(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.debug("Validation for film has failed. Incorrect film name, might be: lesser 1 char.");
-            return false;
-        }
-        if (film.getDescription() == null || film.getDescription().length() > 200) {
-            log.debug("Validation for film has failed. Incorrect film description, might be: too long.");
-            return false;
-        }
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(CINEMA_DATE_OF_BIRTH)) {
-            log.debug("Validation for film has failed. Incorrect film release date, might be: was before 28th of December 1985.");
-            return false;
-        }
-        if (film.getDuration() <= 0) {
-            log.debug("Validation for film has failed. Incorrect film duration, might be: lesser than 1 point.");
-            return false;
-        }
-        log.debug("Validation for new film was successfully finished.");
-        return true;
     }
 
     public void deleteAllFilms() {

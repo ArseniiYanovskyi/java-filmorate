@@ -6,25 +6,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.Validator;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 public class UserController {
     private final UserService userService;
-    private final FilmService filmService;
     private final Logger log;
+    private final Validator validator;
 
     @Autowired
-    public UserController(UserService userService, FilmService filmService) {
+    public UserController(UserService userService, Validator validator) {
         this.userService = userService;
-        this.filmService = filmService;
+        this.validator = validator;
         this.log = LoggerFactory.getLogger("UserController");
     }
 
@@ -37,9 +35,9 @@ public class UserController {
     @PostMapping(value = "/users", consumes = {"application/json"})
     @ResponseStatus(code = HttpStatus.CREATED)
     public User postUser(@Valid @RequestBody User user) {
-        if (!isUserValid(user)) {
-            throw new ValidationException("Validation for adding user has failed.");
-        }
+        log.debug("Received request to add new user.");
+
+        validator.checkUserValidation(user);
 
         log.debug("User ID {} Name: {} Email: {} adding in progress.",
                 user.getId(), user.getName(), user.getEmail());
@@ -50,13 +48,10 @@ public class UserController {
     @PutMapping(value = "/users", consumes = {"application/json"})
     @ResponseStatus(code = HttpStatus.OK)
     public User putUser(@Valid @RequestBody User user) {
-        if (!isUserValid(user)) {
-            throw new ValidationException("Validation for updating user has failed.");
-        }
+        log.debug("Received request to edit existing user.");
 
-        if (user.getId() == 0 || userService.getOptionalOfRequiredUserById(user.getId()).isEmpty()) {
-            throw new NotFoundException("User with this Id does not exist in repository.");
-        }
+        validator.checkUserValidation(user);
+        validator.checkIsUserPresent(user.getId());
 
         log.debug("User ID {} Name: {} Email: {} editing in progress.",
                 user.getId(), user.getName(), user.getEmail());
@@ -66,18 +61,12 @@ public class UserController {
     @PutMapping(value = "/users/{id}/friends/{friendId}")
     @ResponseStatus(code = HttpStatus.OK)
     public void makeUsersMutualFriends(@PathVariable String id, @PathVariable String friendId) {
+        log.debug("Received request to connect users as friend with ID {} and {}.", id, friendId);
+
         int oneUserId = Integer.parseInt(id);
         int anotherUserId = Integer.parseInt(friendId);
 
-        log.debug("Received request to connect users as friend with ID {} and {}.", oneUserId, anotherUserId);
-
-        if (userService.getOptionalOfRequiredUserById(oneUserId).isEmpty()) {
-            throw new NotFoundException("User with ID " + oneUserId + " has not been found.");
-        }
-
-        if (userService.getOptionalOfRequiredUserById(anotherUserId).isEmpty()) {
-            throw new NotFoundException("User with ID " + anotherUserId + " has not been found.");
-        }
+        validator.checkIsPossibleToBecomeFriends(oneUserId, anotherUserId);
 
         userService.addMutualFriend(oneUserId, anotherUserId);
     }
@@ -85,28 +74,12 @@ public class UserController {
     @DeleteMapping(value = "/users/{id}/friends/{friendId}")
     @ResponseStatus(code = HttpStatus.OK)
     public void breakMutualFriendship(@PathVariable String id, @PathVariable String friendId) {
+        log.debug("Received request to break users friendship with ID {} and {}.", id, friendId);
+
         int oneUserId = Integer.parseInt(id);
         int anotherUserId = Integer.parseInt(friendId);
 
-        log.debug("Received request to break users friendship with ID {} and {}.", oneUserId, anotherUserId);
-
-        if (userService.getOptionalOfRequiredUserById(oneUserId).isEmpty()) {
-            throw new NotFoundException("User with ID " + oneUserId + " has not been found.");
-        }
-
-        if (userService.getOptionalOfRequiredUserById(anotherUserId).isEmpty()) {
-            throw new NotFoundException("User with ID " + anotherUserId + " has not been found.");
-        }
-
-        if (userService.getOptionalOfRequiredUserById(oneUserId).get().getFriends() == null
-                || userService.getOptionalOfRequiredUserById(anotherUserId).get().getFriends() == null) {
-            throw new ValidationException("Validation has failed, both or one of users friends list empty.");
-        }
-
-        if (!userService.getOptionalOfRequiredUserById(oneUserId).get().getFriends().contains(anotherUserId)
-                || !userService.getOptionalOfRequiredUserById(anotherUserId).get().getFriends().contains(oneUserId)) {
-            throw new ValidationException("Validation has failed, both or one of users is(are) not connected as friend(s).");
-        }
+        validator.checkIsPossibleToBreakFriends(oneUserId, anotherUserId);
 
         userService.removeMutualFriends(oneUserId, anotherUserId);
     }
@@ -114,13 +87,11 @@ public class UserController {
     @GetMapping(value = "/users/{id}/friends")
     @ResponseStatus(code = HttpStatus.OK)
     public List<User> getFriendsList(@PathVariable String id) {
+        log.debug("Received request to get user with ID {} friends list", id);
+
         int userId = Integer.parseInt(id);
 
-        log.debug("Received request to get user with ID {} friends list", userId);
-
-        if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
-            throw new NotFoundException("User with ID " + userId + " has not been found.");
-        }
+        validator.checkIsUserPresent(userId);
 
         return userService.getFriendsList(userId);
     }
@@ -129,17 +100,12 @@ public class UserController {
     @ResponseStatus(code = HttpStatus.OK)
     public List<User> getMutualFriends(@PathVariable String id, @PathVariable String otherId) {
         log.debug("Received request to get mutual friends users with IDs {} and {}", id, otherId);
+
         int userId = Integer.parseInt(id);
         int anotherUserId = Integer.parseInt(otherId);
 
-
-        if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
-            throw new NotFoundException("User with ID " + userId + " has not been found.");
-        }
-
-        if (userService.getOptionalOfRequiredUserById(anotherUserId).isEmpty()) {
-            throw new NotFoundException("User with ID " + anotherUserId + " has not been found.");
-        }
+        validator.checkIsUserPresent(userId);
+        validator.checkIsUserPresent(anotherUserId);
 
         return userService.getMutualFriendsList(userId, anotherUserId);
     }
@@ -147,42 +113,15 @@ public class UserController {
     @GetMapping(value = "/users/{id}")
     @ResponseStatus(code = HttpStatus.OK)
     public User getUserById(@PathVariable String id) {
-        int userId = Integer.parseInt(id);
+        log.debug("Received request to get user with ID {}", id);
 
-        log.debug("Received request to get user with ID {}", userId);
+        int userId = Integer.parseInt(id);
 
         if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
             throw new NotFoundException("User with ID " + userId + " has not been found.");
         }
 
         return userService.getOptionalOfRequiredUserById(userId).get();
-    }
-
-    private boolean isUserValid(User user) {
-        if (user.getEmail() == null || !isEmailValid(user.getEmail())) {
-            log.debug("Validation for user has failed. Incorrect email.");
-            return false;
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            log.debug("Validation for user has failed. Incorrect login(might be spaces).");
-            return false;
-        }
-        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-            log.debug("Validation for user has failed. Incorrect birthdate, might be: birthdate is future.");
-            return false;
-        }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.debug("Validation for new user was successfully finished. But named replaces with login.");
-            return true;
-        }
-        log.debug("Validation for new user was successfully finished.");
-        return true;
-    }
-
-
-    private boolean isEmailValid(String email) {
-        return email.contains("@");
     }
 
     public void deleteAllUsers() {

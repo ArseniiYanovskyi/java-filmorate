@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.UserRepository;
@@ -9,8 +10,9 @@ import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
-    public UserRepository userRepository;
+    private final UserRepository userRepository;
 
+    @Autowired
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
