@@ -14,7 +14,7 @@ import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
 import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
 import ru.yandex.practicum.filmorate.repositories.UserRepository;
 import ru.yandex.practicum.filmorate.service.FilmServiceImpl;
-import ru.yandex.practicum.filmorate.service.ValidatorImpl;
+import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,8 +29,7 @@ class FilmControllerTests {
         FilmRepository filmRepository = new InMemoryFilmRepository();
         UserRepository userRepository = new InMemoryUserRepository();
 
-        filmController = new FilmController(new FilmServiceImpl(filmRepository),
-                new ValidatorImpl(filmRepository, userRepository));
+        filmController = new FilmController(new FilmServiceImpl(filmRepository, new UserServiceImpl(userRepository)));
     }
 
     @AfterEach

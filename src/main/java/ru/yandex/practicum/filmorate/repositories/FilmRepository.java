@@ -16,5 +16,9 @@ public interface FilmRepository {
 
     Optional<Film> getOptionalOfFilmById(int id);
 
+    void addLike(int filmId, int userId);
+
+    void removeLike(int filmId, int userId);
+
     void clear();
 }

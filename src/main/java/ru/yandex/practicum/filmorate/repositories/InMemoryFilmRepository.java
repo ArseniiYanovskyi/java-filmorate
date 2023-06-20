@@ -52,6 +52,17 @@ public class InMemoryFilmRepository implements FilmRepository {
     }
 
     @Override
+    public void addLike(int filmId, int userId) {
+        filmsData.get(filmId).addLike(userId);
+    }
+
+    @Override
+    public void removeLike(int filmId, int userId) {
+        filmsData.get(filmId).removeLike(userId);
+    }
+
+
+    @Override
     public Optional<Film> getOptionalOfFilmById(int filmId) {
         return Optional.ofNullable(filmsData.get(filmId));
     }

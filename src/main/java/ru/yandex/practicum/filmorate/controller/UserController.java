@@ -5,10 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.service.Validator;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -17,12 +15,10 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final Logger log;
-    private final Validator validator;
 
     @Autowired
-    public UserController(UserService userService, Validator validator) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.validator = validator;
         this.log = LoggerFactory.getLogger("UserController");
     }
 
@@ -37,10 +33,6 @@ public class UserController {
     public User postUser(@Valid @RequestBody User user) {
         log.debug("Received request to add new user.");
 
-        validator.checkUserValidation(user);
-
-        log.debug("User ID {} Name: {} Email: {} adding in progress.",
-                user.getId(), user.getName(), user.getEmail());
         return userService.addUser(user);
     }
 
@@ -50,11 +42,6 @@ public class UserController {
     public User putUser(@Valid @RequestBody User user) {
         log.debug("Received request to edit existing user.");
 
-        validator.checkUserValidation(user);
-        validator.checkIsUserPresent(user.getId());
-
-        log.debug("User ID {} Name: {} Email: {} editing in progress.",
-                user.getId(), user.getName(), user.getEmail());
         return userService.updateUser(user);
     }
 
@@ -65,8 +52,6 @@ public class UserController {
 
         int oneUserId = Integer.parseInt(id);
         int anotherUserId = Integer.parseInt(friendId);
-
-        validator.checkIsPossibleToBecomeFriends(oneUserId, anotherUserId);
 
         userService.addMutualFriend(oneUserId, anotherUserId);
     }
@@ -79,8 +64,6 @@ public class UserController {
         int oneUserId = Integer.parseInt(id);
         int anotherUserId = Integer.parseInt(friendId);
 
-        validator.checkIsPossibleToBreakFriends(oneUserId, anotherUserId);
-
         userService.removeMutualFriends(oneUserId, anotherUserId);
     }
 
@@ -90,8 +73,6 @@ public class UserController {
         log.debug("Received request to get user with ID {} friends list", id);
 
         int userId = Integer.parseInt(id);
-
-        validator.checkIsUserPresent(userId);
 
         return userService.getFriendsList(userId);
     }
@@ -104,9 +85,6 @@ public class UserController {
         int userId = Integer.parseInt(id);
         int anotherUserId = Integer.parseInt(otherId);
 
-        validator.checkIsUserPresent(userId);
-        validator.checkIsUserPresent(anotherUserId);
-
         return userService.getMutualFriendsList(userId, anotherUserId);
     }
 
@@ -117,11 +95,7 @@ public class UserController {
 
         int userId = Integer.parseInt(id);
 
-        if (userService.getOptionalOfRequiredUserById(userId).isEmpty()) {
-            throw new NotFoundException("User with ID " + userId + " has not been found.");
-        }
-
-        return userService.getOptionalOfRequiredUserById(userId).get();
+        return userService.getRequiredUserById(userId);
     }
 
     public void deleteAllUsers() {

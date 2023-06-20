@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.Validator;
 
 import java.util.List;
 
@@ -15,12 +14,10 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
     private final Logger log;
-    private final Validator validator;
 
     @Autowired
-    public FilmController(FilmService filmService, Validator validator) {
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
-        this.validator = validator;
         this.log = LoggerFactory.getLogger("FilmController");
     }
 
@@ -35,9 +32,6 @@ public class FilmController {
     public Film postFilm(@RequestBody Film film) {
         log.debug("Received request to add new film.");
 
-        validator.checkFilmValidation(film);
-
-        log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
         return filmService.addFilm(film);
     }
 
@@ -46,10 +40,6 @@ public class FilmController {
     public Film putFilm(@RequestBody Film film) {
         log.debug("Received request to edit existing film.");
 
-        validator.checkFilmValidation(film);
-        validator.checkIsFilmPresent(film.getId());
-
-        log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
         return filmService.updateFilm(film);
     }
 
@@ -67,8 +57,6 @@ public class FilmController {
         int filmId = Integer.parseInt(id);
         int userIdentifier = Integer.parseInt(userId);
 
-        validator.checkIsPossibleToAddLike(filmId, userIdentifier);
-
         filmService.addLike(filmId, userIdentifier);
     }
 
@@ -80,8 +68,6 @@ public class FilmController {
         int filmId = Integer.parseInt(id);
         int userIdentifier = Integer.parseInt(userId);
 
-        validator.checkIsPossibleToRemoveLike(filmId, userIdentifier);
-
         filmService.removeLike(filmId, userIdentifier);
     }
 
@@ -92,9 +78,7 @@ public class FilmController {
 
         int filmId = Integer.parseInt(id);
 
-        validator.checkIsFilmPresent(filmId);
-
-        return filmService.getOptionalOfRequiredFilmById(filmId).get();
+        return filmService.getRequiredFilmById(filmId);
     }
 
     public void deleteAllFilms() {
