@@ -3,16 +3,25 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
-    public List<User> getAll();
+    List<User> getAll();
 
-    public User addUser(User user);
+    User addUser(User user);
 
-    public Optional<User> getOptionalOfRequiredUserById(int id);
+    User getRequiredUserById(int id);
 
-    public User updateUser(User user);
+    User updateUser(User user);
 
-    public void clearRepository();
+    void addMutualFriend(int userId, int friendId);
+
+    void removeMutualFriends(int userId, int friendId);
+
+    List<User> getMutualFriendsList(int firstUserId, int secondUserId);
+
+    List<User> getFriendsList(int id);
+
+    void checkUserValidation(User user);
+
+    void clearRepository();
 }

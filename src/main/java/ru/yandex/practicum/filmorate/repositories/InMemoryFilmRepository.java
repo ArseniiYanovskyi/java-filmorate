@@ -1,17 +1,18 @@
 package ru.yandex.practicum.filmorate.repositories;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Repository
+@Component
 public class InMemoryFilmRepository implements FilmRepository {
-    private HashMap<Integer, Film> filmsData = new HashMap<>();
+    private final HashMap<Integer, Film> filmsData = new HashMap<>();
     private int filmIdCounter = 0;
 
     @Override
@@ -41,6 +42,27 @@ public class InMemoryFilmRepository implements FilmRepository {
     }
 
     @Override
+    public List<Film> getTopFilms(int size) {
+        return filmsData.values().stream()
+                .sorted((film1, film2) -> {
+                    int compareValue = film1.getLikes().size() - film2.getLikes().size();
+                    return -1 * compareValue;
+                })
+                .limit(size).collect(Collectors.toList());
+    }
+
+    @Override
+    public void addLike(int filmId, int userId) {
+        filmsData.get(filmId).addLike(userId);
+    }
+
+    @Override
+    public void removeLike(int filmId, int userId) {
+        filmsData.get(filmId).removeLike(userId);
+    }
+
+
+    @Override
     public Optional<Film> getOptionalOfFilmById(int filmId) {
         return Optional.ofNullable(filmsData.get(filmId));
     }
@@ -51,10 +73,7 @@ public class InMemoryFilmRepository implements FilmRepository {
     }
 
     private boolean isFilmPresent(Film film) {
-        if (filmsData.containsKey(film.getId())) {
-            return true;
-        }
-        return false;
+        return filmsData.containsKey(film.getId());
     }
 
 

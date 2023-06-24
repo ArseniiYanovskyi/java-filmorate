@@ -9,6 +9,12 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repositories.FilmRepository;
+import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
+import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
+import ru.yandex.practicum.filmorate.repositories.UserRepository;
+import ru.yandex.practicum.filmorate.service.FilmServiceImpl;
+import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,124 +22,127 @@ import java.util.List;
 
 @SpringBootTest
 class FilmControllerTests {
-	private FilmController filmController;
+    private FilmController filmController;
 
-	@BeforeEach
-	void resetController() {
-		filmController = new FilmController();
-	}
+    @BeforeEach
+    void resetController() {
+        FilmRepository filmRepository = new InMemoryFilmRepository();
+        UserRepository userRepository = new InMemoryUserRepository();
 
-	@AfterEach
-	void clearData() {
-		filmController.deleteAllFilms();
-	}
+        filmController = new FilmController(new FilmServiceImpl(filmRepository, new UserServiceImpl(userRepository)));
+    }
 
-	@Test
-	void shouldAddFilmCorrectly() {
-		Film film = new Film();
-		film.setRate(3);
-		film.setName("FilmName");
-		film.setDescription("FilmDescription");
-		film.setReleaseDate(LocalDate.of(1999, 10, 6));
-		film.setDuration(120);
+    @AfterEach
+    void clearData() {
+        filmController.deleteAllFilms();
+    }
 
-		filmController.postFilm(film);
+    @Test
+    void shouldAddFilmCorrectly() {
+        Film film = new Film();
+        film.setRate(3);
+        film.setName("FilmName");
+        film.setDescription("FilmDescription");
+        film.setReleaseDate(LocalDate.of(1999, 10, 6));
+        film.setDuration(120);
 
-		List<Film> filmsList = new ArrayList<>();
-		filmsList.add(film);
+        filmController.postFilm(film);
 
-		Assertions.assertEquals(filmsList, filmController.getFilmsList());
-		Assertions.assertEquals(film, filmController.getFilmsList().get(0));
+        List<Film> filmsList = new ArrayList<>();
+        filmsList.add(film);
 
-		Film anotherFilm = new Film();
-		anotherFilm.setRate(1);
-		anotherFilm.setName("AnotherFilmName");
-		anotherFilm.setDescription("AnotherFilmDescription");
-		anotherFilm.setReleaseDate(LocalDate.of(2005, 12, 15));
-		anotherFilm.setDuration(180);
+        Assertions.assertEquals(filmsList, filmController.getFilmsList());
+        Assertions.assertEquals(film, filmController.getFilmsList().get(0));
 
-		filmController.postFilm(anotherFilm);
+        Film anotherFilm = new Film();
+        anotherFilm.setRate(1);
+        anotherFilm.setName("AnotherFilmName");
+        anotherFilm.setDescription("AnotherFilmDescription");
+        anotherFilm.setReleaseDate(LocalDate.of(2005, 12, 15));
+        anotherFilm.setDuration(180);
 
-		filmsList.add(anotherFilm);
+        filmController.postFilm(anotherFilm);
 
-		Assertions.assertEquals(filmsList, filmController.getFilmsList());
-		Assertions.assertEquals(anotherFilm, filmController.getFilmsList().get(1));
-	}
+        filmsList.add(anotherFilm);
 
-	@Test
-	void shouldEditFilmCorrectly() {
-		Film film = new Film();
-		film.setRate(3);
-		film.setName("FilmName");
-		film.setDescription("FilmDescription");
-		film.setReleaseDate(LocalDate.of(1999, 10, 6));
-		film.setDuration(120);
+        Assertions.assertEquals(filmsList, filmController.getFilmsList());
+        Assertions.assertEquals(anotherFilm, filmController.getFilmsList().get(1));
+    }
 
-		filmController.postFilm(film);
+    @Test
+    void shouldEditFilmCorrectly() {
+        Film film = new Film();
+        film.setRate(3);
+        film.setName("FilmName");
+        film.setDescription("FilmDescription");
+        film.setReleaseDate(LocalDate.of(1999, 10, 6));
+        film.setDuration(120);
 
-		String maxCharSeqForDesc = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";
+        filmController.postFilm(film);
 
-		List<Film> oneFilmList = filmController.getFilmsList();
+        String maxCharSeqForDesc = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";
 
-		Film anotherFilm = new Film();
-		anotherFilm.setName("AnotherFilmName");
-		anotherFilm.setDescription(maxCharSeqForDesc);
-		anotherFilm.setReleaseDate(oneFilmList.get(0).getReleaseDate());
-		anotherFilm.setDuration(oneFilmList.get(0).getDuration());
-		anotherFilm.setRate(4);
-		anotherFilm.setId(oneFilmList.get(0).getId());
+        List<Film> oneFilmList = filmController.getFilmsList();
 
-		filmController.putFilm(anotherFilm);
+        Film anotherFilm = new Film();
+        anotherFilm.setName("AnotherFilmName");
+        anotherFilm.setDescription(maxCharSeqForDesc);
+        anotherFilm.setReleaseDate(oneFilmList.get(0).getReleaseDate());
+        anotherFilm.setDuration(oneFilmList.get(0).getDuration());
+        anotherFilm.setRate(4);
+        anotherFilm.setId(oneFilmList.get(0).getId());
 
-		Assertions.assertEquals("AnotherFilmName", filmController.getFilmsList().get(0).getName());
-		Assertions.assertEquals(maxCharSeqForDesc, filmController.getFilmsList().get(0).getDescription());
-		Assertions.assertEquals(4, filmController.getFilmsList().get(0).getRate());
+        filmController.putFilm(anotherFilm);
 
-		anotherFilm.setId(789);
-		Assertions.assertThrows(NotFoundException.class, () -> filmController.putFilm(anotherFilm));
-	}
+        Assertions.assertEquals("AnotherFilmName", filmController.getFilmsList().get(0).getName());
+        Assertions.assertEquals(maxCharSeqForDesc, filmController.getFilmsList().get(0).getDescription());
+        Assertions.assertEquals(4, filmController.getFilmsList().get(0).getRate());
 
-	@Test
-	void shouldReturnErrorsForBadFilmValidation() {
-		String aboveMaxCharSeq = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-				+ "%";
+        anotherFilm.setId(789);
+        Assertions.assertThrows(NotFoundException.class, () -> filmController.putFilm(anotherFilm));
+    }
 
-		Film film = new Film();
-		film.setRate(3);
-		film.setName("FilmName");
-		film.setDescription(aboveMaxCharSeq);
-		film.setReleaseDate(LocalDate.of(1999, 10, 6));
-		film.setDuration(120);
+    @Test
+    void shouldReturnErrorsForBadFilmValidation() {
+        String aboveMaxCharSeq = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+                + "%";
 
-		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
+        Film film = new Film();
+        film.setRate(3);
+        film.setName("FilmName");
+        film.setDescription(aboveMaxCharSeq);
+        film.setReleaseDate(LocalDate.of(1999, 10, 6));
+        film.setDuration(120);
 
-		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
+        Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
-		film.setDescription("NowDescriptionCorrect");
-		film.setDuration(-10);
+        Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 
-		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
+        film.setDescription("NowDescriptionCorrect");
+        film.setDuration(-10);
 
-		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
+        Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
-		film.setDuration(120);
-		film.setReleaseDate(LocalDate.of(1866, 10, 19));
+        Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 
-		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
+        film.setDuration(120);
+        film.setReleaseDate(LocalDate.of(1866, 10, 19));
 
-		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
+        Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
 
-		film.setReleaseDate(LocalDate.of(1999, 10, 6));
-		film.setName("");
+        Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
 
-		Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
+        film.setReleaseDate(LocalDate.of(1999, 10, 6));
+        film.setName("");
 
-		Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
-	}
+        Assertions.assertThrows(ValidationException.class, () -> filmController.postFilm(film));
+
+        Assertions.assertEquals(new ArrayList<>(), filmController.getFilmsList());
+    }
 }
