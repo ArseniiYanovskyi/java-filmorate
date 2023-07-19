@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface MPADao {
     void updateMPAInformation(Film film);
+
     Optional<Mpa> getOptionalOfMpaById(int id);
+
     List<Mpa> getAllMpaData();
 }

@@ -1,23 +1,17 @@
 package ru.yandex.practicum.filmorate;
 
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.dao.FilmsDBStorage;
-import ru.yandex.practicum.filmorate.dao.FilmsDao;
 import ru.yandex.practicum.filmorate.dao.GenresDBStorage;
-import ru.yandex.practicum.filmorate.dao.MPARatingsDBStorage;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -34,7 +28,7 @@ class FilmStorageTests {
     @Test
     void shouldAddFilmCorrectly() {
         Film film = new Film();
-        film.setMpa(new Mpa(3,"PG-13"));
+        film.setMpa(new Mpa(3, "PG-13"));
         film.setName("FilmName");
         film.setDescription("FilmDescription");
         film.setReleaseDate(LocalDate.of(1999, 10, 6));
@@ -152,7 +146,7 @@ class FilmStorageTests {
     @Test
     void shouldAddAndRemoveLikeCorrectly() {
         Film film = new Film();
-        film.setMpa(new Mpa(3,"PG-13"));
+        film.setMpa(new Mpa(3, "PG-13"));
         film.setName("FilmName");
         film.setDescription("FilmDescription");
         film.setReleaseDate(LocalDate.of(1999, 10, 6));

@@ -9,11 +9,15 @@ import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Repository
-public class GenresDBStorage implements GenresDao{
+public class GenresDBStorage implements GenresDao {
     private final JdbcTemplate jdbcTemplate;
+
     @Autowired
     public GenresDBStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

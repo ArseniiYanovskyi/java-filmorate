@@ -26,9 +26,12 @@ public interface FilmService {
     List<Mpa> getAllMpaData();
 
     Genre getGenreById(int id);
+
     List<Genre> getAllGenres();
 
     void checkFilmValidation(Film film);
+
     void checkMPAValidation(Film film);
+
     void checkGenresValidation(Film film);
 }

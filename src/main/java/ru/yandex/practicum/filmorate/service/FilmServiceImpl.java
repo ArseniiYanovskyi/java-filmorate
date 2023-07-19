@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.FilmsDao;
 import ru.yandex.practicum.filmorate.dao.GenresDao;
 import ru.yandex.practicum.filmorate.dao.MPADao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
@@ -11,11 +12,8 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.dao.FilmsDao;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -145,7 +143,7 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public void checkMPAValidation(Film film){
+    public void checkMPAValidation(Film film) {
         if (MPARepository.getOptionalOfMpaById(film.getMpa().getId()).isEmpty()) {
             log.debug("Validation for film has failed. Incorrect Film MPA information.");
             throw new ValidationException("Validation for adding film has failed. Incorrect MPA ID.");
@@ -157,7 +155,7 @@ public class FilmServiceImpl implements FilmService {
     public void checkGenresValidation(Film film) {
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             log.debug("Validation for new film Genres  was successfully finished."
-             + " Genres data for this film is empty");
+                    + " Genres data for this film is empty");
             return;
         }
 

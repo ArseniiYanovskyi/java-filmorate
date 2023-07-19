@@ -18,10 +18,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
-public class FilmsDBStorage implements FilmsDao{
+public class FilmsDBStorage implements FilmsDao {
 
     private final JdbcTemplate jdbcTemplate;
     private final GenresDao GenresRepository;
+
     @Autowired
     public FilmsDBStorage(JdbcTemplate jdbcTemplate, GenresDao GenresRepository) {
         this.jdbcTemplate = jdbcTemplate;
@@ -66,8 +67,8 @@ public class FilmsDBStorage implements FilmsDao{
     @Override
     public Film updateFilm(Film film) {
         final String sqlQuery = "update FILMS set " +
-                    "NAME = ?, DESCRIPTION = ?, RELEASEDATE = ?, DURATION = ?, RATE = ?, MPA = ? " +
-                    "where FILM_ID = ?";
+                "NAME = ?, DESCRIPTION = ?, RELEASEDATE = ?, DURATION = ?, RATE = ?, MPA = ? " +
+                "where FILM_ID = ?";
 
         jdbcTemplate.update(sqlQuery,
                 film.getName(),
@@ -144,7 +145,7 @@ public class FilmsDBStorage implements FilmsDao{
     private void fillFilmListWithGenres(List<Film> filmList) {
         for (Film film : filmList) {
             Set<Genre> filmGenres = new HashSet<>();
-            for (Integer genreId : GenresRepository.getFilmGenresById(film.getId())){
+            for (Integer genreId : GenresRepository.getFilmGenresById(film.getId())) {
                 Genre genre = GenresRepository.getOptionalOfGenreById(genreId)
                         .orElseThrow(() -> new NotFoundException("Genre with Id: " + genreId + " does not exist in repository."));
                 filmGenres.add(genre);

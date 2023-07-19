@@ -2,26 +2,23 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 @Data
 @NoArgsConstructor
 public class Film {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public Set<Genre> genres;
+    Mpa mpa;
     private int id;
     private String name;
     private String description;
     private LocalDate releaseDate;
     private int duration;
     private int rate;
-    Mpa mpa;
-    public Set<Genre> genres;
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration, int rate) {
         this.id = id;

@@ -22,5 +22,6 @@ public interface UserService {
     List<User> getFriendsList(int id);
 
     void checkUserValidation(User user);
+
     void checkIdUserForPresentsInRepository(int id);
 }

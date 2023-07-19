@@ -9,7 +9,10 @@ import java.util.Set;
 
 public interface GenresDao {
     void updateFilmGenres(Film film);
+
     Set<Integer> getFilmGenresById(int filmId);
+
     Optional<Genre> getOptionalOfGenreById(int id);
+
     List<Genre> getAllGenres();
 }

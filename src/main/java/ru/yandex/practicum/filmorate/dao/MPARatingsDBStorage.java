@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class MPARatingsDBStorage implements MPADao{
+public class MPARatingsDBStorage implements MPADao {
 
     private final JdbcTemplate jdbcTemplate;
+
     @Autowired
     public MPARatingsDBStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

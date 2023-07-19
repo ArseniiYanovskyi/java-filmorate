@@ -11,12 +11,16 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
-public class UsersDBStorage implements UsersDao{
+public class UsersDBStorage implements UsersDao {
     private final JdbcTemplate jdbcTemplate;
+
     @Autowired
     public UsersDBStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -32,7 +36,7 @@ public class UsersDBStorage implements UsersDao{
     @Override
     public User addUser(User user) {
         final String sqlQuery = "insert into USERS (EMAIL, LOGIN, NAME, BIRTHDAY) "
-                            + "values (?, ?, ?, ?)";
+                + "values (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -56,11 +60,11 @@ public class UsersDBStorage implements UsersDao{
                 "where USER_ID = ?";
 
         jdbcTemplate.update(sqlQuery,
-            user.getEmail(),
-            user.getLogin(),
-            user.getName(),
-            user.getBirthday(),
-            user.getId());
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday(),
+                user.getId());
 
         return user;
     }
