@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.List;
 
@@ -19,7 +21,14 @@ public interface FilmService {
 
     List<Film> getTopFilms(int size);
 
-    void checkFilmValidation(Film film);
+    Mpa getMpaById(int id);
 
-    void clearRepository();
+    List<Mpa> getAllMpaData();
+
+    Genre getGenreById(int id);
+    List<Genre> getAllGenres();
+
+    void checkFilmValidation(Film film);
+    void checkMPAValidation(Film film);
+    void checkGenresValidation(Film film);
 }

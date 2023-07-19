@@ -4,20 +4,28 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.GenresDao;
+import ru.yandex.practicum.filmorate.dao.MPADao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repositories.FilmRepository;
+import ru.yandex.practicum.filmorate.dao.FilmsDao;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FilmServiceImpl implements FilmService {
     private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
-    private final FilmRepository filmRepository;
+    private final FilmsDao filmRepository;
+    private final GenresDao genreRepository;
+    private final MPADao MPARepository;
     private final UserService userService;
     private final Logger log = LoggerFactory.getLogger("FilmService");
 
@@ -29,9 +37,15 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film addFilm(Film film) {
         checkFilmValidation(film);
+        checkMPAValidation(film);
+        checkGenresValidation(film);
 
         log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
-        return filmRepository.addFilm(film);
+
+        Film addingFilm = filmRepository.addFilm(film);
+        genreRepository.updateFilmGenres(film);
+        MPARepository.updateMPAInformation(film);
+        return addingFilm;
     }
 
     public Film getRequiredFilmById(int id) {
@@ -42,20 +56,24 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film updateFilm(Film film) {
         checkFilmValidation(film);
-        Film thisFilm = filmRepository.getOptionalOfFilmById(film.getId())
-                .orElseThrow(() -> new NotFoundException("Film with this Id does not exist in repository."));
+        checkMPAValidation(film);
+        checkGenresValidation(film);
+
+        checkIdFilmForPresentsInRepository(film.getId());
 
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
+
+        genreRepository.updateFilmGenres(film);
+        MPARepository.updateMPAInformation(film);
         return filmRepository.updateFilm(film);
     }
 
     @Override
     public void addLike(int filmId, int userId) {
-        Film film = filmRepository.getOptionalOfFilmById(filmId)
-                .orElseThrow(() -> new NotFoundException("Film with this Id does not exist in repository."));
-        User user = userService.getRequiredUserById(userId);
+        checkIdFilmForPresentsInRepository(filmId);
+        userService.checkIdUserForPresentsInRepository(userId);
 
-        if (film.getLikes().contains(user.getId())) {
+        if (filmRepository.getLikes(filmId).contains(userId)) {
             throw new ValidationException("This user already has set Like to Film " + filmId + ".");
         }
         filmRepository.addLike(filmId, userId);
@@ -63,11 +81,10 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public void removeLike(int filmId, int userId) {
-        Film film = filmRepository.getOptionalOfFilmById(filmId)
-                .orElseThrow(() -> new NotFoundException("Film with this Id does not exist in repository."));
-        User user = userService.getRequiredUserById(userId);
+        checkIdFilmForPresentsInRepository(filmId);
+        userService.checkIdUserForPresentsInRepository(userId);
 
-        if (!film.getLikes().contains(user.getId())) {
+        if (!filmRepository.getLikes(filmId).contains(userId)) {
             throw new ValidationException("This user has not set Like to Film " + filmId + ".");
         }
         filmRepository.removeLike(filmId, userId);
@@ -82,6 +99,28 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public List<Film> getTopFilms(int size) {
         return filmRepository.getTopFilms(size);
+    }
+
+    @Override
+    public Mpa getMpaById(int id) {
+        return MPARepository.getOptionalOfMpaById(id)
+                .orElseThrow(() -> new NotFoundException("Mpa with Id: " + id + " does not exist in repository."));
+    }
+
+    @Override
+    public List<Mpa> getAllMpaData() {
+        return MPARepository.getAllMpaData();
+    }
+
+    @Override
+    public Genre getGenreById(int id) {
+        return genreRepository.getOptionalOfGenreById(id)
+                .orElseThrow(() -> new NotFoundException("Genre with Id: " + id + " does not exist in repository."));
+    }
+
+    @Override
+    public List<Genre> getAllGenres() {
+        return genreRepository.getAllGenres();
     }
 
     @Override
@@ -106,7 +145,30 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public void clearRepository() {
-        filmRepository.clear();
+    public void checkMPAValidation(Film film){
+        if (MPARepository.getOptionalOfMpaById(film.getMpa().getId()).isEmpty()) {
+            log.debug("Validation for film has failed. Incorrect Film MPA information.");
+            throw new ValidationException("Validation for adding film has failed. Incorrect MPA ID.");
+        }
+        log.debug("Validation for new film MPA  was successfully finished.");
+    }
+
+    @Override
+    public void checkGenresValidation(Film film) {
+        if (film.getGenres() == null || film.getGenres().isEmpty()) {
+            log.debug("Validation for new film Genres  was successfully finished."
+             + " Genres data for this film is empty");
+            return;
+        }
+
+        List<Integer> filmGenresList = film.getGenres().stream()
+                .map(Genre::getId)
+                .filter(id -> genreRepository.getOptionalOfGenreById(id).isPresent())
+                .collect(Collectors.toList());
+        if (filmGenresList.size() != film.getGenres().size()) {
+            log.debug("Validation for film has failed. Incorrect Film Genres information.");
+            throw new ValidationException("Validation for adding film has failed. Incorrect Genres.");
+        }
+        log.debug("Validation for new film Genres  was successfully finished.");
     }
 }

@@ -80,9 +80,4 @@ public class FilmController {
 
         return filmService.getRequiredFilmById(filmId);
     }
-
-    public void deleteAllFilms() {
-        log.debug("Deleting all films data.");
-        filmService.clearRepository();
-    }
 }

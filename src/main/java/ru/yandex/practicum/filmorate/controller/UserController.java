@@ -47,24 +47,24 @@ public class UserController {
 
     @PutMapping(value = "/users/{id}/friends/{friendId}")
     @ResponseStatus(code = HttpStatus.OK)
-    public void makeUsersMutualFriends(@PathVariable String id, @PathVariable String friendId) {
-        log.debug("Received request to connect users as friend with ID {} and {}.", id, friendId);
+    public void addFriend(@PathVariable String id, @PathVariable String friendId) {
+        log.debug("Received request to from user with ID {} to add user with ID {} as friend.", id, friendId);
 
-        int oneUserId = Integer.parseInt(id);
-        int anotherUserId = Integer.parseInt(friendId);
+        int userIdentifier = Integer.parseInt(id);
+        int friendIdentifier = Integer.parseInt(friendId);
 
-        userService.addMutualFriend(oneUserId, anotherUserId);
+        userService.addFriend(userIdentifier, friendIdentifier);
     }
 
     @DeleteMapping(value = "/users/{id}/friends/{friendId}")
     @ResponseStatus(code = HttpStatus.OK)
-    public void breakMutualFriendship(@PathVariable String id, @PathVariable String friendId) {
-        log.debug("Received request to break users friendship with ID {} and {}.", id, friendId);
+    public void deleteFriend(@PathVariable String id, @PathVariable String friendId) {
+        log.debug("Received request from user with ID {} to delete from friend list ID {}.", id, friendId);
 
-        int oneUserId = Integer.parseInt(id);
-        int anotherUserId = Integer.parseInt(friendId);
+        int userIdentifier = Integer.parseInt(id);
+        int friendIdentifier = Integer.parseInt(friendId);
 
-        userService.removeMutualFriends(oneUserId, anotherUserId);
+        userService.deleteFriend(userIdentifier, friendIdentifier);
     }
 
     @GetMapping(value = "/users/{id}/friends")
@@ -96,9 +96,5 @@ public class UserController {
         int userId = Integer.parseInt(id);
 
         return userService.getRequiredUserById(userId);
-    }
-
-    public void deleteAllUsers() {
-        userService.clearRepository();
     }
 }

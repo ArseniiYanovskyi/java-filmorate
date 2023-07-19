@@ -9,10 +9,7 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repositories.FilmRepository;
-import ru.yandex.practicum.filmorate.repositories.InMemoryFilmRepository;
-import ru.yandex.practicum.filmorate.repositories.InMemoryUserRepository;
-import ru.yandex.practicum.filmorate.repositories.UserRepository;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import java.time.LocalDate;
@@ -25,15 +22,6 @@ class UserControllerTests {
 
     @BeforeEach
     void resetController() {
-        FilmRepository filmRepository = new InMemoryFilmRepository();
-        UserRepository userRepository = new InMemoryUserRepository();
-
-        userController = new UserController(new UserServiceImpl(userRepository));
-    }
-
-    @AfterEach
-    void clearData() {
-        userController.deleteAllUsers();
     }
 
 
