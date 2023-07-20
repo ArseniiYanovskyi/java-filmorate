@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS users
 );
 CREATE TABLE IF NOT EXISTS friends
 (
-    user_id   integer,
-    friend_id integer
+    user_id   integer references users (user_id),
+    friend_id integer references users (user_id)
 );
 CREATE TABLE IF NOT EXISTS likes
 (

@@ -32,14 +32,8 @@ CREATE TABLE IF NOT EXISTS mpa_ratings
 );
 CREATE TABLE IF NOT EXISTS films_ratings
 (
-    film_id integer references films
-        (
-         film_id
-            ),
-    mpa_id  integer references mpa_ratings
-        (
-         mpa_id
-            )
+    film_id integer,
+    mpa_id  integer
 );
 CREATE TABLE IF NOT EXISTS genres
 (
@@ -56,14 +50,8 @@ CREATE TABLE IF NOT EXISTS genres
 );
 CREATE TABLE IF NOT EXISTS films_genres
 (
-    film_id  integer references films
-        (
-         film_id
-            ),
-    genre_id integer references genres
-        (
-         genre_id
-            )
+    film_id  integer,
+    genre_id integer
 );
 CREATE TABLE IF NOT EXISTS users
 (
@@ -88,12 +76,6 @@ CREATE TABLE IF NOT EXISTS friends
 );
 CREATE TABLE IF NOT EXISTS likes
 (
-    film_id integer references films
-        (
-         film_id
-            ),
-    user_id integer references users
-        (
-         user_id
-            )
+    film_id integer,
+    user_id integer
 );
