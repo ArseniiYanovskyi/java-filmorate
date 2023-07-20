@@ -27,8 +27,8 @@ public class FilmServiceImpl implements FilmService {
     private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
     private final FilmsDao filmsRepository;
     private final GenresDao genresRepository;
-    private final MPADao MPARepository;
-    private final LikesDao LikesRepository;
+    private final MPADao mpaRepository;
+    private final LikesDao likesRepository;
     private final UserService userService;
     private final Logger log = LoggerFactory.getLogger("FilmService");
 
@@ -49,7 +49,7 @@ public class FilmServiceImpl implements FilmService {
 
         Film addingFilm = filmsRepository.addFilm(film);
         genresRepository.updateFilmsGenresTable(addingFilm);
-        MPARepository.updateFilmsMPATable(addingFilm);
+        mpaRepository.updateFilmsMPATable(addingFilm);
         return addingFilm;
     }
 
@@ -73,7 +73,7 @@ public class FilmServiceImpl implements FilmService {
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
 
         genresRepository.updateFilmsGenresTable(film);
-        MPARepository.updateFilmsMPATable(film);
+        mpaRepository.updateFilmsMPATable(film);
         return filmsRepository.updateFilm(film);
     }
 
@@ -82,10 +82,10 @@ public class FilmServiceImpl implements FilmService {
         checkIdFilmForPresentsInRepository(filmId);
         userService.checkIdUserForPresentsInRepository(userId);
 
-        if (LikesRepository.getLikes(filmId).contains(userId)) {
+        if (likesRepository.getLikes(filmId).contains(userId)) {
             throw new ValidationException("This user already has set Like to Film " + filmId + ".");
         }
-        LikesRepository.addLike(filmId, userId);
+        likesRepository.addLike(filmId, userId);
     }
 
     @Override
@@ -93,10 +93,10 @@ public class FilmServiceImpl implements FilmService {
         checkIdFilmForPresentsInRepository(filmId);
         userService.checkIdUserForPresentsInRepository(userId);
 
-        if (!LikesRepository.getLikes(filmId).contains(userId)) {
+        if (!likesRepository.getLikes(filmId).contains(userId)) {
             throw new ValidationException("This user has not set Like to Film " + filmId + ".");
         }
-        LikesRepository.removeLike(filmId, userId);
+        likesRepository.removeLike(filmId, userId);
     }
 
 
@@ -114,13 +114,13 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Mpa getMpaById(int id) {
-        return MPARepository.getOptionalOfMpaById(id)
+        return mpaRepository.getOptionalOfMpaById(id)
                 .orElseThrow(() -> new NotFoundException("Mpa with Id: " + id + " does not exist in repository."));
     }
 
     @Override
     public List<Mpa> getAllMpaData() {
-        return MPARepository.getAllMpaData();
+        return mpaRepository.getAllMpaData();
     }
 
     @Override
@@ -169,7 +169,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public void checkMPAValidation(Film film) {
-        if (MPARepository.getOptionalOfMpaById(film.getMpa().getId()).isEmpty()) {
+        if (mpaRepository.getOptionalOfMpaById(film.getMpa().getId()).isEmpty()) {
             log.debug("Validation for film has failed. Incorrect Film MPA information.");
             throw new ValidationException("Validation for adding film has failed. Incorrect MPA ID.");
         }
