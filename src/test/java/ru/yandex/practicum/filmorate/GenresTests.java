@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.dao.FilmsDBStorage;
 import ru.yandex.practicum.filmorate.dao.GenresDBStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -53,7 +52,8 @@ class GenresTests {
         filmGenresIds.add(2);
         Assertions.assertEquals(filmGenresIds, genresDBStorage.getFilmGenresById(1));
 
-        genres.remove(0);film.setGenres(genres);
+        genres.remove(0);
+        film.setGenres(genres);
 
         genresDBStorage.updateFilmsGenresTable(film);
 

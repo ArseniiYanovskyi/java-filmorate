@@ -46,7 +46,7 @@ class LikesTests {
         likes.remove(0);
 
         Assertions.assertEquals(likes, likesDBStorage.getLikes(1));
-   }
+    }
 
     @Test
     void shouldReturnCorrectTopList() {
