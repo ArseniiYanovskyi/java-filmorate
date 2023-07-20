@@ -92,7 +92,7 @@ public class UsersDBStorage implements UsersDao {
 
     @Override
     public void addFriend(int oneUserId, int anotherUserId) {
-        final String sqlQuery = "insert into FRIENDS (user_id, friend_id) " +
+        final String sqlQuery = "insert into FRIENDS (USER_ID, FRIEND_ID) " +
                 "values (?, ?)";
         jdbcTemplate.update(sqlQuery, oneUserId, anotherUserId);
     }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dao.UsersDBStorage;
@@ -104,18 +105,20 @@ public class UsersStorageTests {
         List<User> correctFriendsList = new ArrayList<>();
 
         User user = new User();
-        user.setName("1user");
-        user.setEmail("1user@yandex.ru");
-        user.setLogin("1user");
+        user.setName("user");
+        user.setEmail("user@yandex.ru");
+        user.setLogin("user");
         user.setBirthday(LocalDate.of(1995, 10, 20));
         usersStorage.addUser(user);
 
+        Assertions.assertEquals(correctFriendsList, usersStorage.getFriendsList(1));
+
         for (int i = 1; i < 6; i++) {
             user = new User();
-            user.setName(i + 1 + "user");
-            user.setEmail(i + 1 + "user@yandex.ru");
-            user.setLogin(i + 1 + "user");
-            user.setBirthday(LocalDate.of(1995, 10, 20 + i));
+            user.setName("user");
+            user.setEmail("user@yandex.ru");
+            user.setLogin("user");
+            user.setBirthday(LocalDate.of(1995, 10, 20));
             usersStorage.addUser(user);
             user.setId(i + 1);
             correctFriendsList.add(user);
@@ -134,37 +137,12 @@ public class UsersStorageTests {
         correctFriendsList.remove(3);
 
         Assertions.assertEquals(correctFriendsList, usersStorage.getFriendsList(1));
-    }
-
-    @Test
-    void shouldReturnMutualFriendListCorrectly() {
-        List<User> correctFriendsList = new ArrayList<>();
-
-        User user = new User();
-        user.setName("1user");
-        user.setEmail("1user@yandex.ru");
-        user.setLogin("1user");
-        user.setBirthday(LocalDate.of(1995, 10, 20));
-        usersStorage.addUser(user);
-
-        for (int i = 1; i < 6; i++) {
-            user = new User();
-            user.setName(i + 1 + "user");
-            user.setEmail(i + 1 + "user@yandex.ru");
-            user.setLogin(i + 1 + "user");
-            user.setBirthday(LocalDate.of(1995, 10, 20 + i));
-            usersStorage.addUser(user);
-            user.setId(i + 1);
-        }
-
-        usersStorage.addFriend(1, 2);
-        usersStorage.addFriend(1, 6);
 
         usersStorage.addFriend(2, 6);
         usersStorage.addFriend(2, 1);
 
-        correctFriendsList.add(user);
-
-        Assertions.assertEquals(correctFriendsList, usersStorage.getMutualFriends(1, 2));
+        List<User> correctMutualFriendsList = new ArrayList<>();
+        correctMutualFriendsList.add(user);
+        Assertions.assertEquals(correctMutualFriendsList, usersStorage.getMutualFriends(1, 2));
     }
 }
