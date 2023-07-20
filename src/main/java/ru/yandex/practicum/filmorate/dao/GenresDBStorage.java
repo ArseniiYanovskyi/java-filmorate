@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -15,16 +15,12 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
+@RequiredArgsConstructor
 public class GenresDBStorage implements GenresDao {
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    public GenresDBStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     @Override
-    public void updateFilmGenres(Film film) {
+    public void updateFilmsGenresTable(Film film) {
         final String sqlQueryForDeleting = "delete from FILMS_GENRES where FILM_ID = ?";
         jdbcTemplate.update(sqlQueryForDeleting, film.getId());
 

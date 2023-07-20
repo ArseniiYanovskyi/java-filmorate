@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -13,17 +13,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class MPARatingsDBStorage implements MPADao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    public MPARatingsDBStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     @Override
-    public void updateMPAInformation(Film film) {
+    public void updateFilmsMPATable(Film film) {
         final String sqlQueryForDeleting = "delete from FILMS_RATINGS where FILM_ID = ?";
         jdbcTemplate.update(sqlQueryForDeleting, film.getId());
 

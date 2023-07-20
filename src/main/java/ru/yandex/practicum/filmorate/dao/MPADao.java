@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MPADao {
-    void updateMPAInformation(Film film);
+    void updateFilmsMPATable(Film film);
 
     Optional<Mpa> getOptionalOfMpaById(int id);
 

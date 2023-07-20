@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmsDao;
 import ru.yandex.practicum.filmorate.dao.GenresDao;
+import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.dao.MPADao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -14,22 +15,28 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FilmServiceImpl implements FilmService {
     private static final LocalDate CINEMA_DATE_OF_BIRTH = LocalDate.of(1895, 12, 28);
-    private final FilmsDao filmRepository;
-    private final GenresDao genreRepository;
+    private final FilmsDao filmsRepository;
+    private final GenresDao genresRepository;
     private final MPADao MPARepository;
+    private final LikesDao LikesRepository;
     private final UserService userService;
     private final Logger log = LoggerFactory.getLogger("FilmService");
 
     @Override
     public List<Film> getAll() {
-        return filmRepository.getAll();
+        List<Film> returningList = filmsRepository.getAll();
+        setGenresForFilmList(returningList);
+        return returningList;
     }
 
     @Override
@@ -40,15 +47,19 @@ public class FilmServiceImpl implements FilmService {
 
         log.debug("Film ID {} Title: {} adding in progress.", film.getId(), film.getName());
 
-        Film addingFilm = filmRepository.addFilm(film);
-        genreRepository.updateFilmGenres(film);
-        MPARepository.updateMPAInformation(film);
+        Film addingFilm = filmsRepository.addFilm(film);
+        genresRepository.updateFilmsGenresTable(addingFilm);
+        MPARepository.updateFilmsMPATable(addingFilm);
         return addingFilm;
     }
 
     public Film getRequiredFilmById(int id) {
-        return filmRepository.getOptionalOfFilmById(id)
+        Film film = filmsRepository.getOptionalOfFilmById(id)
                 .orElseThrow(() -> new NotFoundException("Film with this Id does not exist in repository."));
+        List<Film> returningList = new ArrayList<>();
+        returningList.add(film);
+        setGenresForFilmList(returningList);
+        return returningList.get(0);
     }
 
     @Override
@@ -61,9 +72,9 @@ public class FilmServiceImpl implements FilmService {
 
         log.debug("Film ID {} Title: {} updating in progress.", film.getId(), film.getName());
 
-        genreRepository.updateFilmGenres(film);
-        MPARepository.updateMPAInformation(film);
-        return filmRepository.updateFilm(film);
+        genresRepository.updateFilmsGenresTable(film);
+        MPARepository.updateFilmsMPATable(film);
+        return filmsRepository.updateFilm(film);
     }
 
     @Override
@@ -71,10 +82,10 @@ public class FilmServiceImpl implements FilmService {
         checkIdFilmForPresentsInRepository(filmId);
         userService.checkIdUserForPresentsInRepository(userId);
 
-        if (filmRepository.getLikes(filmId).contains(userId)) {
+        if (LikesRepository.getLikes(filmId).contains(userId)) {
             throw new ValidationException("This user already has set Like to Film " + filmId + ".");
         }
-        filmRepository.addLike(filmId, userId);
+        LikesRepository.addLike(filmId, userId);
     }
 
     @Override
@@ -82,21 +93,23 @@ public class FilmServiceImpl implements FilmService {
         checkIdFilmForPresentsInRepository(filmId);
         userService.checkIdUserForPresentsInRepository(userId);
 
-        if (!filmRepository.getLikes(filmId).contains(userId)) {
+        if (!LikesRepository.getLikes(filmId).contains(userId)) {
             throw new ValidationException("This user has not set Like to Film " + filmId + ".");
         }
-        filmRepository.removeLike(filmId, userId);
+        LikesRepository.removeLike(filmId, userId);
     }
 
 
     private void checkIdFilmForPresentsInRepository(int id) {
-        Film film = filmRepository.getOptionalOfFilmById(id)
+        Film film = filmsRepository.getOptionalOfFilmById(id)
                 .orElseThrow(() -> new NotFoundException("Film with Id: " + id + " does not exist in repository."));
     }
 
     @Override
     public List<Film> getTopFilms(int size) {
-        return filmRepository.getTopFilms(size);
+        List<Film> returningList = filmsRepository.getTopFilms(size);
+        setGenresForFilmList(returningList);
+        return returningList;
     }
 
     @Override
@@ -112,13 +125,25 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Genre getGenreById(int id) {
-        return genreRepository.getOptionalOfGenreById(id)
+        return genresRepository.getOptionalOfGenreById(id)
                 .orElseThrow(() -> new NotFoundException("Genre with Id: " + id + " does not exist in repository."));
     }
 
     @Override
     public List<Genre> getAllGenres() {
-        return genreRepository.getAllGenres();
+        return genresRepository.getAllGenres();
+    }
+
+    private void setGenresForFilmList(List<Film> filmList) {
+        for (Film film : filmList) {
+            Set<Genre> filmGenres = new HashSet<>();
+            for (Integer genreId : genresRepository.getFilmGenresById(film.getId())) {
+                Genre genre = genresRepository.getOptionalOfGenreById(genreId)
+                        .orElseThrow(() -> new NotFoundException("Genre with Id: " + genreId + " does not exist in repository."));
+                filmGenres.add(genre);
+            }
+            film.setGenres(filmGenres);
+        }
     }
 
     @Override
@@ -161,7 +186,7 @@ public class FilmServiceImpl implements FilmService {
 
         List<Integer> filmGenresList = film.getGenres().stream()
                 .map(Genre::getId)
-                .filter(id -> genreRepository.getOptionalOfGenreById(id).isPresent())
+                .filter(id -> genresRepository.getOptionalOfGenreById(id).isPresent())
                 .collect(Collectors.toList());
         if (filmGenresList.size() != film.getGenres().size()) {
             log.debug("Validation for film has failed. Incorrect Film Genres information.");

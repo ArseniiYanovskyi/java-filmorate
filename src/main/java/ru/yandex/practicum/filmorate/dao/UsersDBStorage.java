@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -18,13 +18,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
+@RequiredArgsConstructor
 public class UsersDBStorage implements UsersDao {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public UsersDBStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public List<User> getAll() {
@@ -96,7 +92,7 @@ public class UsersDBStorage implements UsersDao {
 
     @Override
     public void addFriend(int oneUserId, int anotherUserId) {
-        final String sqlQuery = "insert into FRIENDS (user_id, friend_id)" +
+        final String sqlQuery = "insert into FRIENDS (user_id, friend_id) " +
                 "values (?, ?)";
         jdbcTemplate.update(sqlQuery, oneUserId, anotherUserId);
     }
