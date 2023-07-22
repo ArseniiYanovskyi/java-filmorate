@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.repositories;
+package ru.yandex.practicum.filmorate.dao;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface FilmRepository {
+public interface FilmsDao {
     List<Film> getAll();
 
     Film addFilm(Film film);
@@ -16,9 +16,4 @@ public interface FilmRepository {
 
     Optional<Film> getOptionalOfFilmById(int id);
 
-    void addLike(int filmId, int userId);
-
-    void removeLike(int filmId, int userId);
-
-    void clear();
 }

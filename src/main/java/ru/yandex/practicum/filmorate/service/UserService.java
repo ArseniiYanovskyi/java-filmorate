@@ -13,9 +13,9 @@ public interface UserService {
 
     User updateUser(User user);
 
-    void addMutualFriend(int userId, int friendId);
+    void addFriend(int userId, int friendId);
 
-    void removeMutualFriends(int userId, int friendId);
+    void deleteFriend(int userId, int friendId);
 
     List<User> getMutualFriendsList(int firstUserId, int secondUserId);
 
@@ -23,5 +23,5 @@ public interface UserService {
 
     void checkUserValidation(User user);
 
-    void clearRepository();
+    void checkIdUserForPresentsInRepository(int id);
 }

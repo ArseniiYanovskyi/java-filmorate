@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.repositories;
+package ru.yandex.practicum.filmorate.dao;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository {
+public interface UsersDao {
     List<User> getAll();
 
     User addUser(User user);
@@ -16,11 +16,9 @@ public interface UserRepository {
 
     List<User> getFriendsList(int id);
 
-    void addFriendsAsMutual(int oneUserId, int anotherUserId);
+    void addFriend(int oneUserId, int anotherUserId);
 
     List<User> getMutualFriends(int firstUserId, int secondUserId);
 
-    void deleteFriendsAsMutual(int oneUserId, int anotherUserId);
-
-    void clear();
+    void deleteFriend(int oneUserId, int anotherUserId);
 }
